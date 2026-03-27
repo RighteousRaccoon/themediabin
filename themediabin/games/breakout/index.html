@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Breakout - The Media Bin</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #111827);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+    .wrapper {
+      width: min(950px, 100%);
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 2.4rem;
+    }
+    p {
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+    .game-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.28);
+    }
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .scoreboard {
+      font-weight: 700;
+    }
+    .button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    canvas {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 900px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .controls {
+      margin-top: 16px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .links {
+      margin-top: 18px;
+    }
+    .links a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Breakout</h1>
+    <p>Break all the bricks without letting the ball fall.</p>
+
+    <div class="game-box">
+      <div class="hud">
+        <div class="scoreboard">Score: <span id="score">0</span></div>
+        <button class="button" id="resetButton">Reset Game</button>
+        <div class="scoreboard" id="statusText">Press Space to start</div>
+      </div>
+
+      <canvas id="game" width="900" height="500"></canvas>
+
+      <div class="controls">
+        Move: Arrow Left / Arrow Right or A / D<br />
+        Start: Space | Restart: R
+      </div>
+    </div>
+
+    <div class="links">
+      <a href="/games/">← Back to Games</a>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+    const statusText = document.getElementById("statusText");
+    const resetButton = document.getElementById("resetButton");
+
+    const paddle = {
+      width: 140,
+      height: 14,
+      x: canvas.width / 2 - 70,
+      y: canvas.height - 40,
+      speed: 8,
+      dx: 0
+    };
+
+    const ball = {
+      x: canvas.width / 2,
+      y: canvas.height - 60,
+      radius: 10,
+      dx: 4,
+      dy: -4
+    };
+
+    const brick = {
+      rows: 5,
+      cols: 10,
+      width: 76,
+      height: 22,
+      padding: 12,
+      offsetTop: 50,
+      offsetLeft: 33
+    };
+
+    let bricks = [];
+    let score = 0;
+    let gameStarted = false;
+    let gameOver = false;
+    let win = false;
+
+    function buildBricks() {
+      bricks = [];
+      for (let row = 0; row < brick.rows; row++) {
+        for (let col = 0; col < brick.cols; col++) {
+          bricks.push({
+            x: brick.offsetLeft + col * (brick.width + brick.padding),
+            y: brick.offsetTop + row * (brick.height + brick.padding),
+            width: brick.width,
+            height: brick.height,
+            visible: true
+          });
+        }
+      }
+    }
+
+    function resetBall() {
+      ball.x = canvas.width / 2;
+      ball.y = canvas.height - 60;
+      ball.dx = 4 * (Math.random() > 0.5 ? 1 : -1);
+      ball.dy = -4;
+    }
+
+    function resetGame() {
+      paddle.x = canvas.width / 2 - paddle.width / 2;
+      paddle.dx = 0;
+      score = 0;
+      gameStarted = false;
+      gameOver = false;
+      win = false;
+      buildBricks();
+      resetBall();
+      scoreEl.textContent = score;
+      statusText.textContent = "Press Space to start";
+      draw();
+    }
+
+    function movePaddle() {
+      paddle.x += paddle.dx;
+
+      if (paddle.x < 0) paddle.x = 0;
+      if (paddle.x + paddle.width > canvas.width) {
+        paddle.x = canvas.width - paddle.width;
+      }
+    }
+
+    function moveBall() {
+      ball.x += ball.dx;
+      ball.y += ball.dy;
+
+      if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+        ball.dx *= -1;
+      }
+
+      if (ball.y - ball.radius < 0) {
+        ball.dy *= -1;
+      }
+
+      if (
+        ball.x > paddle.x &&
+        ball.x < paddle.x + paddle.width &&
+        ball.y + ball.radius > paddle.y &&
+        ball.y - ball.radius < paddle.y + paddle.height
+      ) {
+        ball.dy = -Math.abs(ball.dy);
+
+        const hitPoint = ball.x - (paddle.x + paddle.width / 2);
+        ball.dx = hitPoint * 0.08;
+      }
+
+      for (const b of bricks) {
+        if (
+          b.visible &&
+          ball.x + ball.radius > b.x &&
+          ball.x - ball.radius < b.x + b.width &&
+          ball.y + ball.radius > b.y &&
+          ball.y - ball.radius < b.y + b.height
+        ) {
+          ball.dy *= -1;
+          b.visible = false;
+          score += 1;
+          scoreEl.textContent = score;
+        }
+      }
+
+      if (bricks.every(b => !b.visible)) {
+        gameOver = true;
+        win = true;
+        statusText.textContent = "You win! Press R to restart";
+      }
+
+      if (ball.y - ball.radius > canvas.height) {
+        gameOver = true;
+        win = false;
+        statusText.textContent = "Game Over - Press R to restart";
+      }
+    }
+
+    function drawPaddle() {
+      ctx.fillStyle = "#3b82f6";
+      ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "white";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawBricks() {
+      bricks.forEach((b, index) => {
+        if (!b.visible) return;
+        const row = Math.floor(index / brick.cols);
+        const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6"];
+        ctx.fillStyle = colors[row % colors.length];
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+      });
+    }
+
+    function drawOverlay() {
+      if (!gameStarted && !gameOver) {
+        ctx.fillStyle = "white";
+        ctx.font = "40px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Press Space to Start", canvas.width / 2, canvas.height / 2);
+      }
+
+      if (gameOver) {
+        ctx.fillStyle = "white";
+        ctx.font = "46px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(win ? "You Win!" : "Game Over", canvas.width / 2, canvas.height / 2 - 10);
+        ctx.font = "24px Arial";
+        ctx.fillText("Press R to Restart", canvas.width / 2, canvas.height / 2 + 30);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBricks();
+      drawPaddle();
+      drawBall();
+      drawOverlay();
+    }
+
+    function gameLoop() {
+      if (gameStarted && !gameOver) {
+        movePaddle();
+        moveBall();
+      }
+
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+
+      if (key === "arrowright" || key === "d") {
+        paddle.dx = paddle.speed;
+      } else if (key === "arrowleft" || key === "a") {
+        paddle.dx = -paddle.speed;
+      }
+
+      if (event.code === "Space" && !gameStarted && !gameOver) {
+        event.preventDefault();
+        gameStarted = true;
+        statusText.textContent = "Game in progress";
+      }
+
+      if (key === "r") {
+        resetGame();
+      }
+    });
+
+    window.addEventListener("keyup", (event) => {
+      const key = event.key.toLowerCase();
+
+      if (
+        key === "arrowright" ||
+        key === "arrowleft" ||
+        key === "a" ||
+        key === "d"
+      ) {
+        paddle.dx = 0;
+      }
+    });
+
+    resetButton.addEventListener("click", resetGame);
+
+    resetGame();
+    gameLoop();
+  </script>
+</body>
+</html>
