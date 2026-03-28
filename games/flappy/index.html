@@ -316,35 +316,75 @@ function playStartSound() {
 }
 
     function drawPipes() {
+  const unit = 6; // pixel block size
+
   for (const pipe of pipes) {
-    // Pipe body
-    const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
-    gradient.addColorStop(0, "#15803d");
-    gradient.addColorStop(0.5, "#22c55e");
-    gradient.addColorStop(1, "#166534");
+    const pipeX = Math.round(pipe.x / unit) * unit;
+    const topHeight = Math.floor(pipe.topHeight / unit) * unit;
+    const bottomY = Math.floor(pipe.bottomY / unit) * unit;
+    const pipeBodyWidth = Math.floor(pipeWidth / unit) * unit;
+    const capHeight = unit * 4;
+    const capWidth = pipeBodyWidth + unit * 2;
 
-    ctx.fillStyle = gradient;
+    // Main colors
+    const dark = "#166534";
+    const mid = "#22c55e";
+    const light = "#86efac";
+    const outline = "#14532d";
 
-    // Top pipe
-    ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+    // Top pipe body
+    ctx.fillStyle = outline;
+    ctx.fillRect(pipeX - unit, 0, pipeBodyWidth + unit * 2, topHeight);
 
-    // Bottom pipe
-    ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
+    ctx.fillStyle = mid;
+    ctx.fillRect(pipeX, 0, pipeBodyWidth, topHeight);
 
-    // Pipe caps
-    ctx.fillStyle = "#16a34a";
-    ctx.fillRect(pipe.x - 6, pipe.topHeight - 24, pipeWidth + 12, 24);
-    ctx.fillRect(pipe.x - 6, pipe.bottomY, pipeWidth + 12, 24);
+    // Top pipe highlight/shadow stripes
+    ctx.fillStyle = light;
+    ctx.fillRect(pipeX + unit, 0, unit, topHeight);
 
-    // Highlights
-    ctx.fillStyle = "rgba(255,255,255,0.18)";
-    ctx.fillRect(pipe.x + 8, 0, 8, pipe.topHeight);
-    ctx.fillRect(pipe.x + 8, pipe.bottomY, 8, canvas.height - pipe.bottomY);
+    ctx.fillStyle = dark;
+    ctx.fillRect(pipeX + pipeBodyWidth - unit * 2, 0, unit, topHeight);
 
-    // Cap highlights
-    ctx.fillStyle = "rgba(255,255,255,0.12)";
-    ctx.fillRect(pipe.x - 2, pipe.topHeight - 20, 8, 16);
-    ctx.fillRect(pipe.x - 2, pipe.bottomY + 4, 8, 16);
+    // Top cap
+    ctx.fillStyle = outline;
+    ctx.fillRect(pipeX - unit * 2, topHeight - capHeight, capWidth + unit * 2, capHeight);
+
+    ctx.fillStyle = mid;
+    ctx.fillRect(pipeX - unit, topHeight - capHeight + unit / 2, capWidth, capHeight - unit / 2);
+
+    ctx.fillStyle = light;
+    ctx.fillRect(pipeX, topHeight - capHeight + unit / 2, unit, capHeight - unit / 2);
+
+    ctx.fillStyle = dark;
+    ctx.fillRect(pipeX + capWidth - unit * 2, topHeight - capHeight + unit / 2, unit, capHeight - unit / 2);
+
+    // Bottom pipe body
+    ctx.fillStyle = outline;
+    ctx.fillRect(pipeX - unit, bottomY, pipeBodyWidth + unit * 2, canvas.height - bottomY);
+
+    ctx.fillStyle = mid;
+    ctx.fillRect(pipeX, bottomY, pipeBodyWidth, canvas.height - bottomY);
+
+    // Bottom pipe highlight/shadow stripes
+    ctx.fillStyle = light;
+    ctx.fillRect(pipeX + unit, bottomY, unit, canvas.height - bottomY);
+
+    ctx.fillStyle = dark;
+    ctx.fillRect(pipeX + pipeBodyWidth - unit * 2, bottomY, unit, canvas.height - bottomY);
+
+    // Bottom cap
+    ctx.fillStyle = outline;
+    ctx.fillRect(pipeX - unit * 2, bottomY, capWidth + unit * 2, capHeight);
+
+    ctx.fillStyle = mid;
+    ctx.fillRect(pipeX - unit, bottomY, capWidth, capHeight - unit / 2);
+
+    ctx.fillStyle = light;
+    ctx.fillRect(pipeX, bottomY, unit, capHeight - unit / 2);
+
+    ctx.fillStyle = dark;
+    ctx.fillRect(pipeX + capWidth - unit * 2, bottomY, unit, capHeight - unit / 2);
   }
 }
 
@@ -369,11 +409,18 @@ function playStartSound() {
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawPipes();
-  ctx.fillStyle = "#65a30d";
+ // Ground
+ctx.fillStyle = "#4d7c0f";
 ctx.fillRect(0, canvas.height - 24, canvas.width, 24);
 
 ctx.fillStyle = "#84cc16";
 ctx.fillRect(0, canvas.height - 24, canvas.width, 6);
+
+// Pixel dirt pattern
+for (let x = 0; x < canvas.width; x += 12) {
+  ctx.fillStyle = x % 24 === 0 ? "#65a30d" : "#3f6212";
+  ctx.fillRect(x, canvas.height - 18, 6, 6);
+}
       drawBird();
       drawOverlay();
     }
