@@ -161,6 +161,7 @@
     }
 
     .thumb {
+      position: relative;
       height: 160px;
       overflow: hidden;
       border-bottom: 1px solid #1e293b;
@@ -172,6 +173,35 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .play-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .play-overlay span {
+      background: #2563eb;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .game-card:hover .thumb img {
+      transform: scale(1.05);
+      opacity: 0.6;
+    }
+
+    .game-card:hover .play-overlay {
+      opacity: 1;
     }
 
     .content {
@@ -253,6 +283,9 @@
         <div class="game-card">
           <div class="thumb">
             <img src="/games/assets/pong.png" alt="Pong thumbnail" />
+            <div class="play-overlay">
+              <span>▶ Play</span>
+            </div>
           </div>
           <div class="content">
             <h3>Pong</h3>
@@ -264,6 +297,9 @@
         <div class="game-card">
           <div class="thumb">
             <img src="/games/assets/snake.png" alt="Snake thumbnail" />
+            <div class="play-overlay">
+              <span>▶ Play</span>
+            </div>
           </div>
           <div class="content">
             <h3>Snake</h3>
@@ -275,6 +311,9 @@
         <div class="game-card">
           <div class="thumb">
             <img src="/games/assets/breakout.png" alt="Breakout thumbnail" />
+            <div class="play-overlay">
+              <span>▶ Play</span>
+            </div>
           </div>
           <div class="content">
             <h3>Breakout</h3>
