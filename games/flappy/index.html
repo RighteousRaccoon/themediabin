@@ -273,26 +273,25 @@ function playStartSound() {
   function drawBird() {
   const tilt = Math.max(-0.6, Math.min(0.6, bird.velocity * 0.06));
 
-  // Sprite sheet has 3 frames laid out horizontally
+  // 3 frames across
   const frameWidth = birdSprite.width / 3;
   const frameHeight = birdSprite.height;
 
   let frame = 1;
-
-if (bird.velocity < -1.5) {
-  frame = 0; // wing up
-} else if (bird.velocity > 2) {
-  frame = 2; // wing down
-} else {
-  frame = 1; // neutral
-}
-
-  if (gameStarted && !gameOver) {
-    frame = Math.floor(performance.now() / 120) % 3;
+  if (bird.velocity < -1.5) {
+    frame = 0;
+  } else if (bird.velocity > 2) {
+    frame = 2;
   }
 
-  const drawWidth = 56;
-  const drawHeight = 56;
+  // Crop inside each frame to remove extra empty space
+  const cropX = frame * frameWidth + frameWidth * 0.18;
+  const cropY = frameHeight * 0.22;
+  const cropW = frameWidth * 0.64;
+  const cropH = frameHeight * 0.50;
+
+  const drawWidth = 72;
+  const drawHeight = 72;
 
   ctx.save();
   ctx.translate(bird.x, bird.y);
@@ -301,13 +300,12 @@ if (bird.velocity < -1.5) {
   if (birdSprite.complete && birdSprite.naturalWidth > 0) {
     ctx.drawImage(
       birdSprite,
-      frame * frameWidth, 0,         // source x, y
-      frameWidth, frameHeight,       // source width, height
-      -drawWidth / 2, -drawHeight / 2, // destination x, y
-      drawWidth, drawHeight          // destination width, height
+      cropX, cropY,
+      cropW, cropH,
+      -drawWidth / 2, -drawHeight / 2,
+      drawWidth, drawHeight
     );
   } else {
-    // fallback while loading
     ctx.beginPath();
     ctx.arc(0, 0, bird.radius, 0, Math.PI * 2);
     ctx.fillStyle = "#facc15";
