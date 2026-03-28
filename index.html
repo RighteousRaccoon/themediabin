@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Media Bin</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #111827);
+      color: #f8fafc;
+      min-height: 100vh;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1100px, 92%);
+      margin: 0 auto;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+    }
+
+    .nav-links a:hover {
+      color: #ffffff;
+    }
+
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.3rem, 6vw, 4.5rem);
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      max-width: 700px;
+      margin: 0 auto 28px;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .hero-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-weight: 700;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      opacity: 0.95;
+    }
+
+    .button-primary {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .button-secondary {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #ffffff;
+    }
+
+    .features {
+      padding: 20px 0 70px;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 28px;
+      font-size: 1.8rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #1e293b;
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .card p {
+      color: #cbd5e1;
+      line-height: 1.55;
+      font-size: 0.96rem;
+    }
+
+    .featured-games {
+      padding: 40px 0 80px;
+    }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .game-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #1e293b;
+      border-radius: 18px;
+      overflow: hidden;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+    }
+
+    .game-card:hover {
+      transform: translateY(-5px);
+      border-color: #3b82f6;
+    }
+
+    .thumb {
+      height: 160px;
+      overflow: hidden;
+      border-bottom: 1px solid #1e293b;
+      background: linear-gradient(135deg, #1d4ed8, #4338ca);
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .content {
+      padding: 18px;
+      text-align: center;
+    }
+
+    .content h3 {
+      margin-bottom: 8px;
+    }
+
+    .content p {
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+
+    footer {
+      border-top: 1px solid #1e293b;
+      padding: 24px 0 40px;
+      color: #94a3b8;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 800px) {
+      .nav {
+        flex-direction: column;
+        gap: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="nav">
+      <div class="logo">The Media Bin</div>
+      <nav class="nav-links">
+        <a href="/">Home</a>
+        <a href="/games/">Games</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <h1>Play browser games instantly</h1>
+      <p>
+        Welcome to The Media Bin — a simple browser-based arcade where you can
+        jump into games without downloads, launchers, or accounts.
+      </p>
+      <div class="hero-buttons">
+        <a class="button button-primary" href="/games/">Browse Games</a>
+        <a class="button button-secondary" href="/games/pong/">Play Pong</a>
+      </div>
+    </section>
+
+    <section class="features">
+      <h2 class="section-title">Why this site works</h2>
+      <div class="feature-grid">
+        <div class="card">
+          <h3>Fast loading</h3>
+          <p>Static hosting on Cloudflare Pages keeps everything quick and lightweight.</p>
+        </div>
+        <div class="card">
+          <h3>Simple to use</h3>
+          <p>No installs, no accounts, no friction — just open a page and start playing.</p>
+        </div>
+        <div class="card">
+          <h3>Easy to grow</h3>
+          <p>Each game lives in its own folder, so you can keep adding titles over time.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="featured-games">
+      <h2 class="section-title">Featured Games</h2>
+
+      <div class="game-grid">
+        <div class="game-card">
+          <div class="thumb">
+            <img src="/games/assets/pong.png" alt="Pong thumbnail" />
+          </div>
+          <div class="content">
+            <h3>Pong</h3>
+            <p>Classic paddle action with multiplayer and sound.</p>
+            <a class="button button-secondary" href="/games/pong/">Play</a>
+          </div>
+        </div>
+
+        <div class="game-card">
+          <div class="thumb">
+            <img src="/games/assets/snake.png" alt="Snake thumbnail" />
+          </div>
+          <div class="content">
+            <h3>Snake</h3>
+            <p>Grow longer and survive as long as possible.</p>
+            <a class="button button-secondary" href="/games/snake/">Play</a>
+          </div>
+        </div>
+
+        <div class="game-card">
+          <div class="thumb">
+            <img src="/games/assets/breakout.png" alt="Breakout thumbnail" />
+          </div>
+          <div class="content">
+            <h3>Breakout</h3>
+            <p>Break all the bricks and keep the ball alive.</p>
+            <a class="button button-secondary" href="/games/breakout/">Play</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      © 2026 The Media Bin
+    </footer>
+  </div>
+</body>
+</html>

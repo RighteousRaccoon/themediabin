@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pong - The Media Bin</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #111827);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .wrapper {
+      width: min(950px, 100%);
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 2.4rem;
+    }
+
+    p {
+      color: #cbd5e1;
+      margin-bottom: 24px;
+    }
+
+    .game-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
+    }
+
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      color: #cbd5e1;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .scoreboard {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .status {
+      font-size: 0.95rem;
+      color: #93c5fd;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 900px;
+      height: auto;
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .controls {
+      margin-top: 16px;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .links {
+      margin-top: 18px;
+    }
+
+    .links a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+
+    .button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      opacity: 0.95;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Pong</h1>
+    <p>Classic browser Pong with keyboard controls.</p>
+
+    <div class="game-box">
+      <div class="hud">
+  <div class="scoreboard">Player: <span id="playerScore">0</span></div>
+
+  <button class="button" id="modeButton">Mode: CPU</button>
+
+  <button class="button" id="resetButton">Reset Game</button>
+
+  <div class="scoreboard">
+    <span id="opponentLabel">CPU</span>: <span id="cpuScore">0</span>
+  </div>
+</div>
+
+      <div class="status" id="statusText">Press Space to start</div>
+
+      <canvas id="game" width="900" height="500"></canvas>
+
+     <div class="controls">
+  Move: W / S or Arrow Up / Arrow Down<br />
+  Start: Space | Pause: P | Restart: R | Mute: M
+</div>
+    </div>
+
+    <div class="links">
+      <a href="/games/">← Back to Games</a>
+    </div>
+  </div>
+
+  <script>
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const playerScoreEl = document.getElementById("playerScore");
+  const cpuScoreEl = document.getElementById("cpuScore");
+  const resetButton = document.getElementById("resetButton");
+  const statusText = document.getElementById("statusText");
+  const modeButton = document.getElementById("modeButton");
+  const opponentLabel = document.getElementById("opponentLabel");
+
+  const paddleWidth = 14;
+  const paddleHeight = 100;
+  const paddleSpeed = 7;
+  const ballSize = 14;
+  const winningScore = 5;
+
+  let playerScore = 0;
+  let cpuScore = 0;
+  let gameOver = false;
+  let gameStarted = false;
+  let isPaused = false;
+  let isMuted = false;
+  let gameMode = "cpu"; // "cpu" or "pvp"
+
+  const player = {
+    x: 30,
+    y: canvas.height / 2 - paddleHeight / 2,
+    width: paddleWidth,
+    height: paddleHeight,
+    speed: paddleSpeed
+  };
+
+  const cpu = {
+    x: canvas.width - 30 - paddleWidth,
+    y: canvas.height / 2 - paddleHeight / 2,
+    width: paddleWidth,
+    height: paddleHeight,
+    speed: 5.2
+  };
+
+  const ball = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    size: ballSize,
+    dx: 5,
+    dy: 3
+  };
+
+  const keys = {
+    w: false,
+    s: false,
+    arrowUp: false,
+    arrowDown: false
+  };
+
+  let audioContext = null;
+
+  function getAudioContext() {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioContext;
+  }
+
+  function playTone(frequency, duration, type = "sine", volume = 0.03) {
+    if (isMuted) return;
+
+    const ac = getAudioContext();
+    const oscillator = ac.createOscillator();
+    const gainNode = ac.createGain();
+
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    gainNode.gain.value = volume;
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ac.destination);
+
+    oscillator.start();
+
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.0001,
+      ac.currentTime + duration
+    );
+
+    oscillator.stop(ac.currentTime + duration);
+  }
+
+  function playPaddleSound() {
+    playTone(440, 0.06, "square", 0.03);
+  }
+
+  function playWallSound() {
+    playTone(300, 0.05, "triangle", 0.02);
+  }
+
+  function playScoreSound() {
+    playTone(220, 0.12, "sawtooth", 0.035);
+  }
+
+  function playWinSound() {
+    if (isMuted) return;
+    playTone(523.25, 0.08, "square", 0.03);
+    setTimeout(() => playTone(659.25, 0.08, "square", 0.03), 90);
+    setTimeout(() => playTone(783.99, 0.14, "square", 0.03), 180);
+  }
+
+  function updateStatus(message) {
+    statusText.textContent = message;
+  }
+
+  function resetBall(direction = 1) {
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+
+    const randomY = (Math.random() * 4) - 2;
+    ball.dx = 5 * direction;
+    ball.dy = randomY === 0 ? 2 : randomY;
+  }
+
+  function resetPositions() {
+    player.y = canvas.height / 2 - paddleHeight / 2;
+    cpu.y = canvas.height / 2 - paddleHeight / 2;
+    resetBall(Math.random() > 0.5 ? 1 : -1);
+  }
+
+  function resetGame() {
+    playerScore = 0;
+    cpuScore = 0;
+    gameOver = false;
+    gameStarted = false;
+    isPaused = false;
+    updateScore();
+    resetPositions();
+    updateStatus("Press Space to start");
+  }
+
+  function updateScore() {
+    playerScoreEl.textContent = playerScore;
+    cpuScoreEl.textContent = cpuScore;
+  }
+
+  function drawRect(x, y, width, height, color = "white") {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, width, height);
+  }
+
+  function drawBall() {
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.size / 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawCenterLine() {
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    const segmentHeight = 24;
+    const gap = 16;
+
+    for (let y = 0; y < canvas.height; y += segmentHeight + gap) {
+      ctx.fillRect(canvas.width / 2 - 3, y, 6, segmentHeight);
+    }
+  }
+
+  function drawText(text, x, y, size = "32px") {
+    ctx.fillStyle = "white";
+    ctx.font = `${size} Arial`;
+    ctx.textAlign = "center";
+    ctx.fillText(text, x, y);
+  }
+
+  function movePlayer() {
+  if (keys.w) player.y -= player.speed;
+  if (keys.s) player.y += player.speed;
+
+  if (player.y < 0) player.y = 0;
+  if (player.y + player.height > canvas.height) {
+    player.y = canvas.height - player.height;
+  }
+}
+
+  function moveCpu() {
+  if (gameMode === "pvp") {
+    // Player 2 controls right paddle
+    if (keys.arrowUp) cpu.y -= cpu.speed;
+    if (keys.arrowDown) cpu.y += cpu.speed;
+  } else {
+    // CPU follows ball
+    const cpuCenter = cpu.y + cpu.height / 2;
+
+    if (cpuCenter < ball.y - 12) {
+      cpu.y += cpu.speed;
+    } else if (cpuCenter > ball.y + 12) {
+      cpu.y -= cpu.speed;
+    }
+  }
+
+  // Keep paddle in bounds
+  if (cpu.y < 0) cpu.y = 0;
+  if (cpu.y + cpu.height > canvas.height) {
+    cpu.y = canvas.height - cpu.height;
+  }
+}
+
+  function checkCollision(paddle) {
+    return (
+      ball.x - ball.size / 2 < paddle.x + paddle.width &&
+      ball.x + ball.size / 2 > paddle.x &&
+      ball.y - ball.size / 2 < paddle.y + paddle.height &&
+      ball.y + ball.size / 2 > paddle.y
+    );
+  }
+
+  function updateBall() {
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    if (ball.y - ball.size / 2 <= 0 || ball.y + ball.size / 2 >= canvas.height) {
+      ball.dy *= -1;
+      playWallSound();
+    }
+
+    if (checkCollision(player)) {
+      ball.x = player.x + player.width + ball.size / 2;
+      ball.dx = Math.abs(ball.dx) + 0.3;
+      ball.dy += (ball.y - (player.y + player.height / 2)) * 0.05;
+      playPaddleSound();
+    }
+
+    if (checkCollision(cpu)) {
+      ball.x = cpu.x - ball.size / 2;
+      ball.dx = -(Math.abs(ball.dx) + 0.3);
+      ball.dy += (ball.y - (cpu.y + cpu.height / 2)) * 0.05;
+      playPaddleSound();
+    }
+
+    if (ball.x < 0) {
+      cpuScore += 1;
+      updateScore();
+      playScoreSound();
+
+      if (cpuScore >= winningScore) {
+        gameOver = true;
+        updateStatus("CPU wins! Press R to restart");
+        playWinSound();
+      } else {
+        resetBall(-1);
+        updateStatus("Point for CPU");
+      }
+    }
+
+    if (ball.x > canvas.width) {
+      playerScore += 1;
+      updateScore();
+      playScoreSound();
+
+      if (playerScore >= winningScore) {
+        gameOver = true;
+        updateStatus("You win! Press R to restart");
+        playWinSound();
+      } else {
+        resetBall(1);
+        updateStatus("Point for Player");
+      }
+    }
+  }
+
+  function drawOverlay() {
+    if (!gameStarted && !gameOver) {
+      drawText("Press Space to Start", canvas.width / 2, canvas.height / 2 - 10, "42px");
+    }
+
+    if (isPaused && !gameOver) {
+      drawText("Paused", canvas.width / 2, canvas.height / 2 - 10, "42px");
+    }
+
+    if (gameOver) {
+      drawText(
+        playerScore >= winningScore ? "You Win!" : "CPU Wins!",
+        canvas.width / 2,
+        canvas.height / 2 - 10,
+        "44px"
+      );
+      drawText("Press R to restart", canvas.width / 2, canvas.height / 2 + 35, "24px");
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawCenterLine();
+    drawRect(player.x, player.y, player.width, player.height);
+    drawRect(cpu.x, cpu.y, cpu.width, cpu.height);
+    drawBall();
+    drawOverlay();
+  }
+
+  function gameLoop() {
+    if (gameStarted && !isPaused && !gameOver) {
+      movePlayer();
+      moveCpu();
+      updateBall();
+    }
+
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  window.addEventListener("keydown", (event) => {
+    const key = event.key.toLowerCase();
+
+    if (key === "w") keys.w = true;
+    if (key === "s") keys.s = true;
+    if (event.key === "ArrowUp") keys.arrowUp = true;
+    if (event.key === "ArrowDown") keys.arrowDown = true;
+
+    if (event.code === "Space") {
+      event.preventDefault();
+      getAudioContext();
+
+      if (!gameStarted && !gameOver) {
+        gameStarted = true;
+        isPaused = false;
+        updateStatus("Game in progress");
+      }
+    }
+
+    if (key === "p" && gameStarted && !gameOver) {
+      isPaused = !isPaused;
+      updateStatus(isPaused ? "Game paused" : "Game in progress");
+    }
+
+    if (key === "r") {
+      resetGame();
+    }
+
+    if (key === "m") {
+      isMuted = !isMuted;
+      updateStatus(isMuted ? "Muted" : "Sound on");
+    }
+  });
+
+  window.addEventListener("keyup", (event) => {
+    const key = event.key.toLowerCase();
+
+    if (key === "w") keys.w = false;
+    if (key === "s") keys.s = false;
+    if (event.key === "ArrowUp") keys.arrowUp = false;
+    if (event.key === "ArrowDown") keys.arrowDown = false;
+  });
+
+  resetButton.addEventListener("click", resetGame);
+  modeButton.addEventListener("click", () => {
+  gameMode = gameMode === "cpu" ? "pvp" : "cpu";
+
+  modeButton.textContent = gameMode === "cpu" ? "Mode: CPU" : "Mode: 2 Player";
+  opponentLabel.textContent = gameMode === "cpu" ? "CPU" : "Player 2";
+
+  resetGame();
+});
+
+  updateScore();
+  resetPositions();
+  updateStatus("Press Space to start");
+  gameLoop();
+</script>
+</body>
+</html>
