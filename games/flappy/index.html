@@ -273,7 +273,6 @@ function playStartSound() {
   function drawBird() {
   const tilt = Math.max(-0.6, Math.min(0.6, bird.velocity * 0.06));
 
-  // 3 frames across
   const frameWidth = birdSprite.width / 3;
   const frameHeight = birdSprite.height;
 
@@ -284,14 +283,14 @@ function playStartSound() {
     frame = 2;
   }
 
-  // Crop inside each frame to remove extra empty space
-  const cropX = frame * frameWidth + frameWidth * 0.18;
-  const cropY = frameHeight * 0.22;
-  const cropW = frameWidth * 0.64;
-  const cropH = frameHeight * 0.50;
+  // Looser crop so the bird does not get cut off
+  const cropX = frame * frameWidth + frameWidth * 0.10;
+  const cropY = frameHeight * 0.12;
+  const cropW = frameWidth * 0.80;
+  const cropH = frameHeight * 0.72;
 
-  const drawWidth = 72;
-  const drawHeight = 72;
+  const drawWidth = 84;
+  const drawHeight = 84;
 
   ctx.save();
   ctx.translate(bird.x, bird.y);
