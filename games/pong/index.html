@@ -159,6 +159,8 @@
   const paddleHeight = 100;
   const paddleSpeed = 7;
   const ballSize = 14;
+  const baseBallSpeed = 5;
+  const maxBallSpeed = 9;
   const winningScore = 5;
 
   let playerScore = 0;
@@ -186,12 +188,12 @@
   };
 
   const ball = {
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    size: ballSize,
-    dx: 5,
-    dy: 3
-  };
+  x: canvas.width / 2,
+  y: canvas.height / 2,
+  size: ballSize,
+  dx: baseBallSpeed,
+  dy: 2
+};
 
   const keys = {
     w: false,
@@ -256,14 +258,16 @@
     statusText.textContent = message;
   }
 
-  function resetBall(direction = 1) {
-    ball.x = canvas.width / 2;
-    ball.y = canvas.height / 2;
+ function resetBall(direction = 1) {
+  ball.x = canvas.width / 2;
+  ball.y = canvas.height / 2;
 
-    const randomY = (Math.random() * 4) - 2;
-    ball.dx = 5 * direction;
-    ball.dy = randomY === 0 ? 2 : randomY;
-  }
+  const launchYOptions = [-2, -1.5, 1.5, 2];
+  const randomIndex = Math.floor(Math.random() * launchYOptions.length);
+
+  ball.dx = baseBallSpeed * direction;
+  ball.dy = launchYOptions[randomIndex];
+}
 
   function resetPositions() {
     player.y = canvas.height / 2 - paddleHeight / 2;
@@ -369,15 +373,21 @@
 
     if (checkCollision(player)) {
       ball.x = player.x + player.width + ball.size / 2;
-      ball.dx = Math.abs(ball.dx) + 0.3;
-      ball.dy += (ball.y - (player.y + player.height / 2)) * 0.05;
+      ball.dx = Math.min(Math.abs(ball.dx) + 0.25, maxBallSpeed);
+ball.dy += (ball.y - (player.y + player.height / 2)) * 0.04;
+
+if (ball.dy > 6) ball.dy = 6;
+if (ball.dy < -6) ball.dy = -6;
       playPaddleSound();
     }
 
     if (checkCollision(cpu)) {
       ball.x = cpu.x - ball.size / 2;
-      ball.dx = -(Math.abs(ball.dx) + 0.3);
-      ball.dy += (ball.y - (cpu.y + cpu.height / 2)) * 0.05;
+      ball.dx = -Math.min(Math.abs(ball.dx) + 0.25, maxBallSpeed);
+ball.dy += (ball.y - (cpu.y + cpu.height / 2)) * 0.04;
+
+if (ball.dy > 6) ball.dy = 6;
+if (ball.dy < -6) ball.dy = -6;
       playPaddleSound();
     }
 
