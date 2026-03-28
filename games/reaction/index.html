@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reaction Test - The Media Bin</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #111827);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+    .wrapper {
+      width: min(900px, 100%);
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 2.4rem;
+    }
+    p {
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+    .game-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.28);
+    }
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .scoreboard {
+      font-weight: 700;
+    }
+    .button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .button:hover {
+      opacity: 0.95;
+    }
+    .arena {
+      width: 100%;
+      max-width: 700px;
+      height: 420px;
+      margin: 0 auto;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      user-select: none;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      background: #1e293b;
+    }
+    .arena.waiting {
+      background: #b91c1c;
+    }
+    .arena.ready {
+      background: #15803d;
+    }
+    .arena.too-soon {
+      background: #92400e;
+    }
+    .controls {
+      margin-top: 16px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .links {
+      margin-top: 18px;
+    }
+    .links a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Reaction Test</h1>
+    <p>Wait for green, then click as fast as you can.</p>
+
+    <div class="game-box">
+      <div class="hud">
+        <div class="scoreboard">Best: <span id="bestTime">--</span></div>
+        <button class="button" id="startButton">Start</button>
+        <div class="scoreboard">Last: <span id="lastTime">--</span></div>
+      </div>
+
+      <div id="arena" class="arena">
+        Click Start to begin
+      </div>
+
+      <div class="controls">
+        Click Start, wait for green, then click immediately.<br />
+        Clicking too early restarts the round.
+      </div>
+    </div>
+
+    <div class="links">
+      <a href="/games/">← Back to Games</a>
+    </div>
+  </div>
+
+  <script>
+    const arena = document.getElementById("arena");
+    const startButton = document.getElementById("startButton");
+    const bestTimeEl = document.getElementById("bestTime");
+    const lastTimeEl = document.getElementById("lastTime");
+
+    let timeoutId = null;
+    let startTime = null;
+    let gameState = "idle"; // idle, waiting, ready
+
+    const bestStored = localStorage.getItem("reactionBestTime");
+    if (bestStored) {
+      bestTimeEl.textContent = `${bestStored} ms`;
+    }
+
+    function resetArena(text, className = "") {
+      arena.className = "arena";
+      if (className) arena.classList.add(className);
+      arena.textContent = text;
+    }
+
+    function startGame() {
+      clearTimeout(timeoutId);
+      gameState = "waiting";
+      startTime = null;
+
+      resetArena("Wait for green...", "waiting");
+
+      const delay = Math.floor(Math.random() * 2500) + 1500;
+
+      timeoutId = setTimeout(() => {
+        gameState = "ready";
+        startTime = performance.now();
+        resetArena("CLICK!", "ready");
+      }, delay);
+    }
+
+    function handleArenaClick() {
+      if (gameState === "idle") {
+        return;
+      }
+
+      if (gameState === "waiting") {
+        clearTimeout(timeoutId);
+        gameState = "idle";
+        resetArena("Too soon! Click Start to try again.", "too-soon");
+        return;
+      }
+
+      if (gameState === "ready") {
+        const reactionTime = Math.round(performance.now() - startTime);
+        lastTimeEl.textContent = `${reactionTime} ms`;
+
+        const bestStored = localStorage.getItem("reactionBestTime");
+        if (!bestStored || reactionTime < Number(bestStored)) {
+          localStorage.setItem("reactionBestTime", reactionTime);
+          bestTimeEl.textContent = `${reactionTime} ms`;
+        }
+
+        gameState = "idle";
+        resetArena(`Your time: ${reactionTime} ms`, "ready");
+      }
+    }
+
+    startButton.addEventListener("click", startGame);
+    arena.addEventListener("click", handleArenaClick);
+  </script>
+</body>
+</html>
