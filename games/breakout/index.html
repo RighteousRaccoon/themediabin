@@ -112,6 +112,8 @@
     const scoreEl = document.getElementById("score");
     const statusText = document.getElementById("statusText");
     const resetButton = document.getElementById("resetButton");
+    const baseBallSpeed = 4;
+    const maxBallDx = 5;
 
     const paddle = {
       width: 140,
@@ -162,11 +164,11 @@
     }
 
     function resetBall() {
-      ball.x = canvas.width / 2;
-      ball.y = canvas.height - 60;
-      ball.dx = 4 * (Math.random() > 0.5 ? 1 : -1);
-      ball.dy = -4;
-    }
+  ball.x = canvas.width / 2;
+  ball.y = canvas.height - 60;
+  ball.dx = (Math.random() > 0.5 ? 1 : -1) * baseBallSpeed;
+  ball.dy = -baseBallSpeed;
+}
 
     function resetGame() {
       paddle.x = canvas.width / 2 - paddle.width / 2;
@@ -212,7 +214,10 @@
         ball.dy = -Math.abs(ball.dy);
 
         const hitPoint = ball.x - (paddle.x + paddle.width / 2);
-        ball.dx = hitPoint * 0.08;
+ball.dx = hitPoint * 0.06;
+
+if (ball.dx > maxBallDx) ball.dx = maxBallDx;
+if (ball.dx < -maxBallDx) ball.dx = -maxBallDx;
       }
 
       for (const b of bricks) {
