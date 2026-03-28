@@ -110,12 +110,13 @@
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
     const scoreEl = document.getElementById("score");
     const statusText = document.getElementById("statusText");
     const resetButton = document.getElementById("resetButton");
     const soundButton = document.getElementById("soundButton");
     const birdSprite = new Image();
-birdSprite.src = "/games/assets/flappy-bird.png";
+birdSprite.src = "/games/assets/flappy-bird-sprite.png";
 
     const gravity = 0.4;
     const flapStrength = -7;
@@ -272,21 +273,46 @@ function playStartSound() {
   function drawBird() {
   const tilt = Math.max(-0.6, Math.min(0.6, bird.velocity * 0.06));
 
-  const size = 85;
+  // Sprite sheet has 3 frames laid out horizontally
+  const frameWidth = birdSprite.width / 3;
+  const frameHeight = birdSprite.height;
+
+  let frame = 1;
+
+if (bird.velocity < -1.5) {
+  frame = 0; // wing up
+} else if (bird.velocity > 2) {
+  frame = 2; // wing down
+} else {
+  frame = 1; // neutral
+}
+
+  if (gameStarted && !gameOver) {
+    frame = Math.floor(performance.now() / 120) % 3;
+  }
+
+  const drawWidth = 56;
+  const drawHeight = 56;
 
   ctx.save();
   ctx.translate(bird.x, bird.y);
   ctx.rotate(tilt);
-  ctx.imageSmoothingEnabled = false;
 
-  if (birdSprite.complete) {
+  if (birdSprite.complete && birdSprite.naturalWidth > 0) {
     ctx.drawImage(
       birdSprite,
-      -size / 2,
-      -size / 2,
-      size,
-      size
+      frame * frameWidth, 0,         // source x, y
+      frameWidth, frameHeight,       // source width, height
+      -drawWidth / 2, -drawHeight / 2, // destination x, y
+      drawWidth, drawHeight          // destination width, height
     );
+  } else {
+    // fallback while loading
+    ctx.beginPath();
+    ctx.arc(0, 0, bird.radius, 0, Math.PI * 2);
+    ctx.fillStyle = "#facc15";
+    ctx.fill();
+    ctx.closePath();
   }
 
   ctx.restore();
