@@ -268,11 +268,11 @@ function playStartSound() {
 }
 
    function drawBird() {
-  const tilt = Math.max(-0.5, Math.min(0.5, bird.velocity * 0.06));
-  const px = 5; // pixel size (adjust for size)
+  const tilt = Math.max(-0.45, Math.min(0.45, bird.velocity * 0.05));
+  const px = 7;
 
   ctx.save();
-  ctx.translate(bird.x, bird.y - 2);
+  ctx.translate(bird.x, bird.y);
   ctx.rotate(tilt);
 
   function pixel(x, y, color) {
@@ -280,57 +280,48 @@ function playStartSound() {
     ctx.fillRect(x * px, y * px, px, px);
   }
 
-  const outline = "#000000";
+  const outline = "#111827";
   const yellow = "#facc15";
   const gold = "#eab308";
   const orange = "#fb923c";
   const white = "#ffffff";
-  const black = "#111827";
+  const black = "#000000";
 
-  // === OUTLINE SHAPE ===
+  // Body outline
   const outlinePixels = [
-    [-2,-3],[-1,-3],[0,-3],[1,-3],
-    [-3,-2],[2,-2],
+    [-2,-2],[-1,-2],[0,-2],[1,-2],
     [-3,-1],[2,-1],
     [-3,0],[2,0],
     [-2,1],[1,1],
-    [-1,2],[0,2],[1,2]
+    [-1,2],[0,2]
   ];
 
-  outlinePixels.forEach(([x,y]) => pixel(x,y,outline));
-
-  // === BODY (fill inside outline) ===
+  // Body fill
   const bodyPixels = [
-    [-2,-2],[-1,-2],[0,-2],[1,-2],
     [-2,-1],[-1,-1],[0,-1],[1,-1],
     [-2,0],[-1,0],[0,0],[1,0],
     [-1,1],[0,1]
   ];
 
-  bodyPixels.forEach(([x,y]) => pixel(x,y,yellow));
+  outlinePixels.forEach(([x, y]) => pixel(x, y, outline));
+  bodyPixels.forEach(([x, y]) => pixel(x, y, yellow));
 
-  // === WING (animated) ===
-  const flapFrame = Math.sin(performance.now() * 0.02) > 0 ? 0 : 1;
+  // Wing
+  const flapUp = Math.sin(performance.now() * 0.02) > 0;
 
-  const wingPixelsUp = [
-    [-4,-2],[-5,-1],[-4,-1],[-3,-1]
-  ];
+  const wingPixels = flapUp
+    ? [[-4,-1],[-5,-2],[-5,-1],[-4,0]]
+    : [[-4,0],[-5,0],[-5,1],[-4,1]];
 
-  const wingPixelsDown = [
-    [-4,0],[-5,0],[-4,1],[-3,0]
-  ];
+  wingPixels.forEach(([x, y]) => pixel(x, y, gold));
 
-  const wing = flapFrame === 0 ? wingPixelsUp : wingPixelsDown;
-  wing.forEach(([x,y]) => pixel(x,y,gold));
+  // Eye
+  pixel(0,-1, white);
+  pixel(1,-1, black);
 
-  // === EYE ===
-  pixel(0,-2,white);
-  pixel(1,-2,black);
-
-  // === BEAK ===
-  pixel(3,-1,orange);
-  pixel(4,-1,orange);
-  pixel(3,0,orange);
+  // Beak
+  pixel(3,-1, orange);
+  pixel(3,0, orange);
 
   ctx.restore();
 }
