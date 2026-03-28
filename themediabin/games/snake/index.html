@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake - The Media Bin</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #111827);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+    .wrapper {
+      width: min(900px, 100%);
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 2.4rem;
+    }
+    p {
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+    .game-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.28);
+    }
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .scoreboard {
+      font-weight: 700;
+    }
+    .button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    canvas {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .controls {
+      margin-top: 16px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .links {
+      margin-top: 18px;
+    }
+    .links a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Snake</h1>
+    <p>Eat food, grow longer, and avoid crashing.</p>
+
+    <div class="game-box">
+      <div class="hud">
+        <div class="scoreboard">Score: <span id="score">0</span></div>
+        <button class="button" id="resetButton">Reset Game</button>
+        <div class="scoreboard" id="statusText">Press Space to start</div>
+      </div>
+
+      <canvas id="game" width="600" height="600"></canvas>
+
+      <div class="controls">
+        Move: Arrow Keys or W/A/S/D<br />
+        Start: Space | Restart: R
+      </div>
+    </div>
+
+    <div class="links">
+      <a href="/games/">← Back to Games</a>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const scoreEl = document.getElementById("score");
+    const statusText = document.getElementById("statusText");
+    const resetButton = document.getElementById("resetButton");
+
+    const gridSize = 30;
+    const tileCount = canvas.width / gridSize;
+
+    let snake = [{ x: 10, y: 10 }];
+    let food = { x: 15, y: 15 };
+    let dx = 0;
+    let dy = 0;
+    let score = 0;
+    let gameStarted = false;
+    let gameOver = false;
+    let gameSpeed = 120;
+    let lastTime = 0;
+
+    function randomFoodPosition() {
+      let valid = false;
+      let newFood;
+
+      while (!valid) {
+        newFood = {
+          x: Math.floor(Math.random() * tileCount),
+          y: Math.floor(Math.random() * tileCount)
+        };
+
+        valid = !snake.some(segment => segment.x === newFood.x && segment.y === newFood.y);
+      }
+
+      return newFood;
+    }
+
+    function resetGame() {
+      snake = [{ x: 10, y: 10 }];
+      food = randomFoodPosition();
+      dx = 0;
+      dy = 0;
+      score = 0;
+      gameStarted = false;
+      gameOver = false;
+      gameSpeed = 120;
+      scoreEl.textContent = score;
+      statusText.textContent = "Press Space to start";
+      draw();
+    }
+
+    function update() {
+      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+      if (
+        head.x < 0 ||
+        head.y < 0 ||
+        head.x >= tileCount ||
+        head.y >= tileCount ||
+        snake.some(segment => segment.x === head.x && segment.y === head.y)
+      ) {
+        gameOver = true;
+        statusText.textContent = "Game Over - Press R to restart";
+        return;
+      }
+
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        score += 1;
+        scoreEl.textContent = score;
+        food = randomFoodPosition();
+        if (gameSpeed > 60) gameSpeed -= 4;
+      } else {
+        snake.pop();
+      }
+    }
+
+    function drawCell(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * gridSize, y * gridSize, gridSize - 2, gridSize - 2);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      drawCell(food.x, food.y, "#ef4444");
+
+      snake.forEach((segment, index) => {
+        drawCell(segment.x, segment.y, index === 0 ? "#22c55e" : "#16a34a");
+      });
+
+      if (!gameStarted && !gameOver) {
+        ctx.fillStyle = "white";
+        ctx.font = "36px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Press Space to Start", canvas.width / 2, canvas.height / 2);
+      }
+
+      if (gameOver) {
+        ctx.fillStyle = "white";
+        ctx.font = "42px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Game Over", canvas.width / 2, canvas.height / 2 - 10);
+        ctx.font = "22px Arial";
+        ctx.fillText("Press R to Restart", canvas.width / 2, canvas.height / 2 + 30);
+      }
+    }
+
+    function gameLoop(timestamp) {
+      if (gameStarted && !gameOver) {
+        if (timestamp - lastTime > gameSpeed) {
+          update();
+          lastTime = timestamp;
+        }
+      }
+
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+
+      if (event.code === "Space" && !gameStarted && !gameOver) {
+        event.preventDefault();
+        gameStarted = true;
+        dx = 1;
+        dy = 0;
+        statusText.textContent = "Game in progress";
+      }
+
+      if (key === "r") {
+        resetGame();
+      }
+
+      if ((key === "arrowup" || key === "w") && dy !== 1) {
+        dx = 0;
+        dy = -1;
+      } else if ((key === "arrowdown" || key === "s") && dy !== -1) {
+        dx = 0;
+        dy = 1;
+      } else if ((key === "arrowleft" || key === "a") && dx !== 1) {
+        dx = -1;
+        dy = 0;
+      } else if ((key === "arrowright" || key === "d") && dx !== -1) {
+        dx = 1;
+        dy = 0;
+      }
+    });
+
+    resetButton.addEventListener("click", resetGame);
+
+    resetGame();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
