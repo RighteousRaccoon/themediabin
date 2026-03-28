@@ -114,6 +114,8 @@
     const statusText = document.getElementById("statusText");
     const resetButton = document.getElementById("resetButton");
     const soundButton = document.getElementById("soundButton");
+    const birdSprite = new Image();
+birdSprite.src = "/games/assets/flappy-bird.png";
 
     const gravity = 0.4;
     const flapStrength = -7;
@@ -267,61 +269,25 @@ function playStartSound() {
   playHitSound();
 }
 
-   function drawBird() {
-  const tilt = Math.max(-0.45, Math.min(0.45, bird.velocity * 0.05));
-  const px = 7;
+  function drawBird() {
+  const tilt = Math.max(-0.6, Math.min(0.6, bird.velocity * 0.06));
+
+  const size = 48;
 
   ctx.save();
   ctx.translate(bird.x, bird.y);
   ctx.rotate(tilt);
+  ctx.imageSmoothingEnabled = false;
 
-  function pixel(x, y, color) {
-    ctx.fillStyle = color;
-    ctx.fillRect(x * px, y * px, px, px);
+  if (birdSprite.complete) {
+    ctx.drawImage(
+      birdSprite,
+      -size / 2,
+      -size / 2,
+      size,
+      size
+    );
   }
-
-  const outline = "#111827";
-  const yellow = "#facc15";
-  const gold = "#eab308";
-  const orange = "#fb923c";
-  const white = "#ffffff";
-  const black = "#000000";
-
-  // Body outline
-  const outlinePixels = [
-    [-2,-2],[-1,-2],[0,-2],[1,-2],
-    [-3,-1],[2,-1],
-    [-3,0],[2,0],
-    [-2,1],[1,1],
-    [-1,2],[0,2]
-  ];
-
-  // Body fill
-  const bodyPixels = [
-    [-2,-1],[-1,-1],[0,-1],[1,-1],
-    [-2,0],[-1,0],[0,0],[1,0],
-    [-1,1],[0,1]
-  ];
-
-  outlinePixels.forEach(([x, y]) => pixel(x, y, outline));
-  bodyPixels.forEach(([x, y]) => pixel(x, y, yellow));
-
-  // Wing
-  const flapUp = Math.sin(performance.now() * 0.02) > 0;
-
-  const wingPixels = flapUp
-    ? [[-4,-1],[-5,-2],[-5,-1],[-4,0]]
-    : [[-4,0],[-5,0],[-5,1],[-4,1]];
-
-  wingPixels.forEach(([x, y]) => pixel(x, y, gold));
-
-  // Eye
-  pixel(0,-1, white);
-  pixel(1,-1, black);
-
-  // Beak
-  pixel(3,-1, orange);
-  pixel(3,0, orange);
 
   ctx.restore();
 }
