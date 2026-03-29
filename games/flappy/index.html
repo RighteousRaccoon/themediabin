@@ -131,6 +131,7 @@ birdSprite.src = "/games/assets/flappy-bird-sprite.png";
     let audioContext = null;
     let soundEnabled = true;
     let lastScorePlayedAt = 0;
+    let clouds = [];
 
     const bird = {
       x: 140,
@@ -187,6 +188,76 @@ function playStartSound() {
   playTone(523, 0.05, "triangle", 0.02);
 }
 
+function createCloud(x = canvas.width + Math.random() * 200) {
+  return {
+    x,
+    y: 40 + Math.random() * 180,
+    width: 48 + Math.random() * 36,
+    speed: 0.4 + Math.random() * 0.5
+  };
+}
+
+function resetClouds() {
+  clouds = [];
+  for (let i = 0; i < 4; i++) {
+    clouds.push(createCloud(i * 180 + 80));
+  }
+}
+
+function updateClouds() {
+  for (const cloud of clouds) {
+    cloud.x -= cloud.speed;
+  }
+
+  clouds = clouds.filter(cloud => cloud.x + cloud.width > -20);
+
+  while (clouds.length < 4) {
+    clouds.push(createCloud());
+  }
+}
+
+function drawClouds() {
+  const unit = 6;
+
+  for (const cloud of clouds) {
+    const x = Math.round(cloud.x / unit) * unit;
+    const y = Math.round(cloud.y / unit) * unit;
+
+    // shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.12)";
+    const shadowPixels = [
+      [1,3],[2,3],[3,3],[4,3],[5,3],
+      [0,4],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],
+      [1,5],[2,5],[3,5],[4,5],[5,5]
+    ];
+    shadowPixels.forEach(([px, py]) => {
+      ctx.fillRect(x + px * unit + 2, y + py * unit + 2, unit, unit);
+    });
+
+    // main cloud
+    ctx.fillStyle = "#f8fafc";
+    const cloudPixels = [
+      [2,0],[3,0],
+      [1,1],[2,1],[3,1],[4,1],
+      [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],
+      [1,3],[2,3],[3,3],[4,3],
+      [2,4],[3,4]
+    ];
+    cloudPixels.forEach(([px, py]) => {
+      ctx.fillRect(x + px * unit, y + py * unit, unit, unit);
+    });
+
+    // highlight
+    ctx.fillStyle = "#ffffff";
+    const highlightPixels = [
+      [2,0],[1,1],[2,1]
+    ];
+    highlightPixels.forEach(([px, py]) => {
+      ctx.fillRect(x + px * unit, y + py * unit, unit, unit);
+    });
+  }
+}
+
     function resetGame() {
       gameStarted = false;
       gameOver = false;
@@ -196,6 +267,7 @@ function playStartSound() {
       pipes = [];
       scoreEl.textContent = score;
       statusText.textContent = "Press Space to start";
+      resetClouds();
       draw();
     }
 
@@ -230,6 +302,7 @@ function playStartSound() {
     function update() {
       bird.velocity += gravity;
       bird.y += bird.velocity;
+      updateClouds();
 
       if (bird.y - bird.radius < 0 || bird.y + bird.radius > canvas.height) {
         endGame();
@@ -408,6 +481,8 @@ function playStartSound() {
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawClouds();
       drawPipes();
  // Ground
 ctx.fillStyle = "#4d7c0f";
