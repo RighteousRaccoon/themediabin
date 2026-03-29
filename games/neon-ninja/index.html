@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Ninja - The Media Bin</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #111827);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .wrapper {
+      width: min(1000px, 100%);
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 2.4rem;
+    }
+
+    p {
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+
+    .game-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.28);
+    }
+
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .scoreboard {
+      font-weight: 700;
+    }
+
+    .button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      opacity: 0.95;
+    }
+
+    canvas {
+      background: linear-gradient(180deg, #020617, #111827);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 900px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      image-rendering: pixelated;
+    }
+
+    .controls {
+      margin-top: 16px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .links {
+      margin-top: 18px;
+    }
+
+    .links a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Neon Ninja</h1>
+    <p>Precision platformer prototype.</p>
+
+    <div class="game-box">
+      <div class="hud">
+        <div class="scoreboard">Status: <span id="statusText">Ready</span></div>
+        <button class="button" id="resetButton">Reset Level</button>
+        <div class="scoreboard">Controls: A/D + Space</div>
+      </div>
+
+      <canvas id="game" width="900" height="500"></canvas>
+
+      <div class="controls">
+        Move: A / D or Arrow Keys<br />
+        Jump: Space / W / Arrow Up<br />
+        Restart: R
+      </div>
+    </div>
+
+    <div class="links">
+      <a href="/games/">← Back to Games</a>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+
+    const statusText = document.getElementById("statusText");
+    const resetButton = document.getElementById("resetButton");
+
+    const ninjaSprite = new Image();
+    ninjaSprite.src = "/games/assets/ninja.png";
+
+    const gravity = 0.6;
+    const moveSpeed = 0.8;
+    const maxSpeed = 4.2;
+    const friction = 0.8;
+    const jumpPower = -11;
+
+    const keys = {
+      left: false,
+      right: false,
+      jump: false
+    };
+
+    const player = {
+      x: 80,
+      y: 380,
+      vx: 0,
+      vy: 0,
+      width: 24,
+      height: 28,
+      facing: 1
+    };
+
+    let onGround = false;
+
+    const platforms = [
+      { x: 0, y: 460, width: 900, height: 40 },
+      { x: 120, y: 390, width: 120, height: 20 },
+      { x: 300, y: 340, width: 140, height: 20 },
+      { x: 520, y: 280, width: 120, height: 20 },
+      { x: 700, y: 220, width: 120, height: 20 }
+    ];
+
+    function resetLevel() {
+      player.x = 80;
+      player.y = 380;
+      player.vx = 0;
+      player.vy = 0;
+      player.facing = 1;
+      onGround = false;
+      statusText.textContent = "Ready";
+    }
+
+    function updatePlayer() {
+      // Horizontal input
+      if (keys.left) {
+        player.vx -= moveSpeed;
+        player.facing = -1;
+      }
+      if (keys.right) {
+        player.vx += moveSpeed;
+        player.facing = 1;
+      }
+
+      // Clamp horizontal speed
+      if (player.vx > maxSpeed) player.vx = maxSpeed;
+      if (player.vx < -maxSpeed) player.vx = -maxSpeed;
+
+      // Apply gravity
+      player.vy += gravity;
+
+      // Save previous position
+      const prevX = player.x;
+      const prevY = player.y;
+
+      // Move horizontally
+      player.x += player.vx;
+
+      // Horizontal collisions
+      for (const platform of platforms) {
+        if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
+          if (prevX + player.width <= platform.x) {
+            player.x = platform.x - player.width;
+            player.vx = 0;
+          } else if (prevX >= platform.x + platform.width) {
+            player.x = platform.x + platform.width;
+            player.vx = 0;
+          }
+        }
+      }
+
+      // Move vertically
+      player.y += player.vy;
+      onGround = false;
+
+      // Vertical collisions
+      for (const platform of platforms) {
+        if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
+          if (prevY + player.height <= platform.y) {
+            player.y = platform.y - player.height;
+            player.vy = 0;
+            onGround = true;
+          } else if (prevY >= platform.y + platform.height) {
+            player.y = platform.y + platform.height;
+            player.vy = 0;
+          }
+        }
+      }
+
+      // Friction
+      if (!keys.left && !keys.right && onGround) {
+        player.vx *= friction;
+        if (Math.abs(player.vx) < 0.05) player.vx = 0;
+      }
+
+      // Keep in bounds
+      if (player.x < 0) {
+        player.x = 0;
+        player.vx = 0;
+      }
+      if (player.x + player.width > canvas.width) {
+        player.x = canvas.width - player.width;
+        player.vx = 0;
+      }
+
+      // Fall reset
+      if (player.y > canvas.height + 100) {
+        resetLevel();
+      }
+    }
+
+    function rectOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
+      return ax < bx + bw &&
+             ax + aw > bx &&
+             ay < by + bh &&
+             ay + ah > by;
+    }
+
+    function drawBackground() {
+      // subtle stars / dots
+      ctx.fillStyle = "rgba(147, 197, 253, 0.15)";
+      for (let i = 0; i < 40; i++) {
+        const x = (i * 173) % canvas.width;
+        const y = (i * 97) % 220;
+        ctx.fillRect(x, y, 2, 2);
+      }
+    }
+
+    function drawPlatforms() {
+      for (const platform of platforms) {
+        // base
+        ctx.fillStyle = "#1f2937";
+        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+
+        // neon top edge
+        ctx.fillStyle = "#22d3ee";
+        ctx.fillRect(platform.x, platform.y, platform.width, 4);
+
+        // highlight
+        ctx.fillStyle = "#374151";
+        ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
+      }
+    }
+
+    function drawPlayer() {
+      const frameWidth = ninjaSprite.width / 4;
+      const frameHeight = ninjaSprite.height;
+
+      let frame = 0; // idle
+
+      if (!onGround) {
+        frame = 3; // jump
+      } else if (Math.abs(player.vx) > 0.2) {
+        frame = Math.floor(performance.now() / 120) % 2 + 1; // run1/run2
+      }
+
+      const drawWidth = 52;
+      const drawHeight = 52;
+
+      ctx.save();
+      ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 4);
+
+      if (player.facing < 0) {
+        ctx.scale(-1, 1);
+      }
+
+      if (ninjaSprite.complete && ninjaSprite.naturalWidth > 0) {
+        ctx.drawImage(
+          ninjaSprite,
+          frame * frameWidth, 0,
+          frameWidth, frameHeight,
+          -drawWidth / 2, -drawHeight / 2,
+          drawWidth, drawHeight
+        );
+      } else {
+        // fallback
+        ctx.fillStyle = "#1f2937";
+        ctx.fillRect(-12, -14, 24, 28);
+        ctx.fillStyle = "#22d3ee";
+        ctx.fillRect(-8, -4, 16, 4);
+      }
+
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground();
+      drawPlatforms();
+      drawPlayer();
+    }
+
+    function gameLoop() {
+      updatePlayer();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+
+      if (key === "a" || event.key === "ArrowLeft") keys.left = true;
+      if (key === "d" || event.key === "ArrowRight") keys.right = true;
+
+      if ((key === "w" || key === " " || event.key === "ArrowUp") && onGround) {
+        player.vy = jumpPower;
+        onGround = false;
+        statusText.textContent = "Jumping";
+      }
+
+      if (key === "r") {
+        resetLevel();
+      }
+    });
+
+    window.addEventListener("keyup", (event) => {
+      const key = event.key.toLowerCase();
+
+      if (key === "a" || event.key === "ArrowLeft") keys.left = false;
+      if (key === "d" || event.key === "ArrowRight") keys.right = false;
+    });
+
+    resetButton.addEventListener("click", resetLevel);
+
+    resetLevel();
+    gameLoop();
+  </script>
+</body>
+</html>
