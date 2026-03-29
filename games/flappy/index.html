@@ -132,6 +132,7 @@ birdSprite.src = "/games/assets/flappy-bird-sprite.png";
     let soundEnabled = true;
     let lastScorePlayedAt = 0;
     let clouds = [];
+    let hills = [];
 
     const bird = {
       x: 140,
@@ -258,6 +259,60 @@ function drawClouds() {
   }
 }
 
+function createHill(x, layer = 1) {
+  return {
+    x,
+    y: layer === 1 ? canvas.height - 90 : canvas.height - 70,
+    width: layer === 1 ? 140 + Math.random() * 40 : 180 + Math.random() * 60,
+    height: layer === 1 ? 50 + Math.random() * 20 : 70 + Math.random() * 30,
+    speed: layer === 1 ? 0.35 : 0.18,
+    layer
+  };
+}
+
+function resetHills() {
+  hills = [];
+
+  let x1 = 0;
+  while (x1 < canvas.width + 200) {
+    const hill = createHill(x1, 1);
+    hills.push(hill);
+    x1 += hill.width * 0.7;
+  }
+
+  let x2 = 0;
+  while (x2 < canvas.width + 200) {
+    const hill = createHill(x2, 2);
+    hills.push(hill);
+    x2 += hill.width * 0.75;
+  }
+}
+
+function updateHills() {
+  for (const hill of hills) {
+    hill.x -= hill.speed;
+  }
+
+  const layer1 = hills.filter(h => h.layer === 1);
+  const layer2 = hills.filter(h => h.layer === 2);
+
+  if (layer1.length > 0) {
+    const rightmost1 = Math.max(...layer1.map(h => h.x + h.width));
+    if (rightmost1 < canvas.width + 120) {
+      hills.push(createHill(rightmost1 - 20, 1));
+    }
+  }
+
+  if (layer2.length > 0) {
+    const rightmost2 = Math.max(...layer2.map(h => h.x + h.width));
+    if (rightmost2 < canvas.width + 120) {
+      hills.push(createHill(rightmost2 - 20, 2));
+    }
+  }
+
+  hills = hills.filter(h => h.x + h.width > -50);
+}
+
     function resetGame() {
       gameStarted = false;
       gameOver = false;
@@ -268,6 +323,7 @@ function drawClouds() {
       scoreEl.textContent = score;
       statusText.textContent = "Press Space to start";
       resetClouds();
+      resetHills();
       draw();
     }
 
@@ -303,6 +359,7 @@ function drawClouds() {
       bird.velocity += gravity;
       bird.y += bird.velocity;
       updateClouds();
+      updateHills();
 
       if (bird.y - bird.radius < 0 || bird.y + bird.radius > canvas.height) {
         endGame();
@@ -386,6 +443,41 @@ function drawClouds() {
   }
 
   ctx.restore();
+}
+
+function drawHills() {
+  const backHills = hills.filter(h => h.layer === 2);
+  const frontHills = hills.filter(h => h.layer === 1);
+
+  // Back layer
+  ctx.fillStyle = "#86efac";
+  for (const hill of backHills) {
+    ctx.beginPath();
+    ctx.moveTo(hill.x, canvas.height - 24);
+    ctx.quadraticCurveTo(
+      hill.x + hill.width / 2,
+      hill.y - hill.height,
+      hill.x + hill.width,
+      canvas.height - 24
+    );
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Front layer
+  ctx.fillStyle = "#4ade80";
+  for (const hill of frontHills) {
+    ctx.beginPath();
+    ctx.moveTo(hill.x, canvas.height - 24);
+    ctx.quadraticCurveTo(
+      hill.x + hill.width / 2,
+      hill.y - hill.height,
+      hill.x + hill.width,
+      canvas.height - 24
+    );
+    ctx.closePath();
+    ctx.fill();
+  }
 }
 
     function drawPipes() {
@@ -483,7 +575,9 @@ function drawClouds() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       drawClouds();
+      drawHills();
       drawPipes();
+      
  // Ground
 ctx.fillStyle = "#4d7c0f";
 ctx.fillRect(0, canvas.height - 24, canvas.width, 24);
