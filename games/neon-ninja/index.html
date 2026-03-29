@@ -107,6 +107,7 @@
       <div class="hud">
   <div class="scoreboard">Level: <span id="levelText">1</span></div>
   <div class="scoreboard">Status: <span id="statusText">Ready</span></div>
+  <div class="scoreboard">Dash: <span id="dashText">0</span></div>
   <div class="scoreboard">Time: <span id="timerText">0.000</span>s</div>
   <div class="scoreboard">Best: <span id="bestTimeText">--</span></div>
   <button class="button" id="resetButton">Reset Level</button>
@@ -139,6 +140,7 @@ const timerText = document.getElementById("timerText");
 const bestTimeText = document.getElementById("bestTimeText");
 const levelText = document.getElementById("levelText");
 const soundButton = document.getElementById("soundButton");
+const dashText = document.getElementById("dashText");
 
     const ninjaSprite = new Image();
     ninjaSprite.src = "/games/assets/ninja.png";
@@ -203,6 +205,11 @@ let bestTime = Number(localStorage.getItem("neonNinjaBestTime")) || null;
 let celebrationParticles = [];
 let audioContext = null;
 let soundEnabled = true;
+let dashCharges = 0;
+let isDashing = false;
+let dashTimer = 0;
+let currentTheme = "cyan";
+let dashOrbs = [];
 
 bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
 
@@ -270,16 +277,16 @@ let exitPortal = {};
 const levels = [
   {
     name: "Level 1",
+    theme: "cyan",
     playerStart: { x: 80, y: 380 },
     portal: { x: 790, y: 172, width: 24, height: 48 },
+    dashOrbs: [],
     platforms: [
       { x: 0, y: 460, width: 900, height: 40 },
-
       { x: 120, y: 390, width: 120, height: 20 },
       { x: 300, y: 340, width: 140, height: 20 },
       { x: 520, y: 280, width: 120, height: 20 },
       { x: 700, y: 220, width: 120, height: 20 },
-
       { x: 420, y: 220, width: 20, height: 180 },
       { x: 640, y: 140, width: 20, height: 180 }
     ],
@@ -287,25 +294,23 @@ const levels = [
       { x: 260, y: 440, width: 40, height: 20 },
       { x: 480, y: 440, width: 40, height: 20 },
       { x: 720, y: 440, width: 40, height: 20 },
-
       { x: 360, y: 320, width: 40, height: 20 },
       { x: 580, y: 260, width: 40, height: 20 }
     ]
   },
-
   {
     name: "Level 2",
+    theme: "cyan",
     playerStart: { x: 70, y: 410 },
     portal: { x: 770, y: 92, width: 24, height: 48 },
+    dashOrbs: [],
     platforms: [
       { x: 0, y: 460, width: 900, height: 40 },
-
       { x: 80, y: 420, width: 120, height: 20 },
       { x: 240, y: 360, width: 100, height: 20 },
       { x: 400, y: 300, width: 100, height: 20 },
       { x: 560, y: 220, width: 100, height: 20 },
       { x: 720, y: 140, width: 100, height: 20 },
-
       { x: 340, y: 260, width: 20, height: 140 },
       { x: 520, y: 180, width: 20, height: 140 }
     ],
@@ -314,10 +319,206 @@ const levels = [
       { x: 360, y: 440, width: 40, height: 20 },
       { x: 510, y: 440, width: 40, height: 20 },
       { x: 660, y: 440, width: 40, height: 20 },
-
       { x: 280, y: 340, width: 40, height: 20 },
       { x: 440, y: 280, width: 40, height: 20 },
       { x: 600, y: 200, width: 40, height: 20 }
+    ]
+  },
+  {
+    name: "Level 3",
+    theme: "cyan",
+    playerStart: { x: 60, y: 410 },
+    portal: { x: 760, y: 70, width: 24, height: 48 },
+    dashOrbs: [],
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+      { x: 60, y: 420, width: 100, height: 20 },
+      { x: 200, y: 360, width: 90, height: 20 },
+      { x: 350, y: 300, width: 90, height: 20 },
+      { x: 500, y: 240, width: 90, height: 20 },
+      { x: 660, y: 180, width: 90, height: 20 },
+      { x: 280, y: 260, width: 20, height: 160 },
+      { x: 580, y: 140, width: 20, height: 180 }
+    ],
+    spikes: [
+      { x: 170, y: 440, width: 40, height: 20 },
+      { x: 320, y: 440, width: 40, height: 20 },
+      { x: 470, y: 440, width: 40, height: 20 },
+      { x: 620, y: 440, width: 40, height: 20 },
+      { x: 240, y: 340, width: 40, height: 20 },
+      { x: 390, y: 280, width: 40, height: 20 },
+      { x: 540, y: 220, width: 40, height: 20 }
+    ]
+  },
+  {
+    name: "Level 4",
+    theme: "cyan",
+    playerStart: { x: 70, y: 400 },
+    portal: { x: 760, y: 90, width: 24, height: 48 },
+    dashOrbs: [],
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+      { x: 90, y: 400, width: 100, height: 20 },
+      { x: 250, y: 350, width: 90, height: 20 },
+      { x: 410, y: 290, width: 90, height: 20 },
+      { x: 570, y: 220, width: 90, height: 20 },
+      { x: 720, y: 140, width: 90, height: 20 },
+      { x: 180, y: 300, width: 20, height: 120 },
+      { x: 500, y: 170, width: 20, height: 140 }
+    ],
+    spikes: [
+      { x: 200, y: 440, width: 40, height: 20 },
+      { x: 360, y: 440, width: 40, height: 20 },
+      { x: 520, y: 440, width: 40, height: 20 },
+      { x: 680, y: 440, width: 40, height: 20 },
+      { x: 280, y: 330, width: 40, height: 20 },
+      { x: 440, y: 270, width: 40, height: 20 },
+      { x: 600, y: 200, width: 40, height: 20 }
+    ]
+  },
+  {
+    name: "Level 5",
+    theme: "cyan",
+    playerStart: { x: 60, y: 405 },
+    portal: { x: 780, y: 60, width: 24, height: 48 },
+    dashOrbs: [],
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+      { x: 70, y: 410, width: 90, height: 20 },
+      { x: 220, y: 350, width: 90, height: 20 },
+      { x: 370, y: 290, width: 90, height: 20 },
+      { x: 520, y: 220, width: 90, height: 20 },
+      { x: 690, y: 140, width: 100, height: 20 },
+      { x: 300, y: 250, width: 20, height: 140 },
+      { x: 610, y: 120, width: 20, height: 160 }
+    ],
+    spikes: [
+      { x: 180, y: 440, width: 40, height: 20 },
+      { x: 330, y: 440, width: 40, height: 20 },
+      { x: 480, y: 440, width: 40, height: 20 },
+      { x: 640, y: 440, width: 40, height: 20 },
+      { x: 250, y: 330, width: 40, height: 20 },
+      { x: 400, y: 270, width: 40, height: 20 },
+      { x: 550, y: 200, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 6",
+    theme: "magenta",
+    playerStart: { x: 70, y: 410 },
+    portal: { x: 770, y: 150, width: 24, height: 48 },
+    dashOrbs: [{ x: 410, y: 250, radius: 12 }],
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+      { x: 80, y: 410, width: 100, height: 20 },
+      { x: 260, y: 340, width: 110, height: 20 },
+      { x: 500, y: 230, width: 110, height: 20 },
+      { x: 720, y: 200, width: 100, height: 20 },
+      { x: 360, y: 220, width: 20, height: 160 }
+    ],
+    spikes: [
+      { x: 200, y: 440, width: 60, height: 20 },
+      { x: 420, y: 440, width: 60, height: 20 },
+      { x: 640, y: 440, width: 60, height: 20 },
+      { x: 310, y: 320, width: 40, height: 20 }
+    ]
+  },
+  {
+    name: "Level 7",
+    theme: "magenta",
+    playerStart: { x: 70, y: 410 },
+    portal: { x: 760, y: 80, width: 24, height: 48 },
+    dashOrbs: [{ x: 300, y: 300, radius: 12 }, { x: 560, y: 170, radius: 12 }],
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+      { x: 90, y: 410, width: 90, height: 20 },
+      { x: 250, y: 330, width: 90, height: 20 },
+      { x: 430, y: 240, width: 90, height: 20 },
+      { x: 690, y: 130, width: 110, height: 20 },
+      { x: 180, y: 260, width: 20, height: 150 },
+      { x: 520, y: 140, width: 20, height: 140 }
+    ],
+    spikes: [
+      { x: 190, y: 440, width: 50, height: 20 },
+      { x: 370, y: 440, width: 50, height: 20 },
+      { x: 550, y: 440, width: 50, height: 20 },
+      { x: 470, y: 220, width: 40, height: 20 }
+    ]
+  },
+  {
+    name: "Level 8",
+    theme: "magenta",
+    playerStart: { x: 60, y: 410 },
+    portal: { x: 780, y: 60, width: 24, height: 48 },
+    dashOrbs: [{ x: 430, y: 260, radius: 12 }],
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+      { x: 80, y: 410, width: 100, height: 20 },
+      { x: 240, y: 350, width: 90, height: 20 },
+      { x: 400, y: 290, width: 90, height: 20 },
+      { x: 580, y: 210, width: 90, height: 20 },
+      { x: 730, y: 120, width: 90, height: 20 },
+      { x: 320, y: 250, width: 20, height: 130 },
+      { x: 520, y: 170, width: 20, height: 140 }
+    ],
+    spikes: [
+      { x: 190, y: 440, width: 50, height: 20 },
+      { x: 350, y: 440, width: 50, height: 20 },
+      { x: 510, y: 440, width: 50, height: 20 },
+      { x: 270, y: 330, width: 40, height: 20 },
+      { x: 610, y: 190, width: 40, height: 20 }
+    ]
+  },
+  {
+    name: "Level 9",
+    theme: "magenta",
+    playerStart: { x: 70, y: 410 },
+    portal: { x: 760, y: 70, width: 24, height: 48 },
+    dashOrbs: [{ x: 260, y: 320, radius: 12 }, { x: 580, y: 180, radius: 12 }],
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+      { x: 90, y: 410, width: 90, height: 20 },
+      { x: 220, y: 340, width: 90, height: 20 },
+      { x: 390, y: 260, width: 90, height: 20 },
+      { x: 580, y: 180, width: 90, height: 20 },
+      { x: 710, y: 120, width: 100, height: 20 },
+      { x: 320, y: 220, width: 20, height: 150 },
+      { x: 520, y: 140, width: 20, height: 120 }
+    ],
+    spikes: [
+      { x: 180, y: 440, width: 60, height: 20 },
+      { x: 340, y: 440, width: 60, height: 20 },
+      { x: 500, y: 440, width: 60, height: 20 },
+      { x: 280, y: 320, width: 40, height: 20 },
+      { x: 440, y: 240, width: 40, height: 20 }
+    ]
+  },
+  {
+    name: "Level 10",
+    theme: "magenta",
+    playerStart: { x: 70, y: 410 },
+    portal: { x: 790, y: 50, width: 24, height: 48 },
+    dashOrbs: [{ x: 300, y: 300, radius: 12 }, { x: 520, y: 180, radius: 12 }, { x: 700, y: 100, radius: 12 }],
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+      { x: 80, y: 410, width: 90, height: 20 },
+      { x: 240, y: 340, width: 80, height: 20 },
+      { x: 420, y: 250, width: 80, height: 20 },
+      { x: 620, y: 150, width: 80, height: 20 },
+      { x: 760, y: 100, width: 70, height: 20 },
+      { x: 170, y: 300, width: 20, height: 120 },
+      { x: 360, y: 210, width: 20, height: 140 },
+      { x: 560, y: 120, width: 20, height: 140 }
+    ],
+    spikes: [
+      { x: 170, y: 440, width: 60, height: 20 },
+      { x: 330, y: 440, width: 60, height: 20 },
+      { x: 490, y: 440, width: 60, height: 20 },
+      { x: 650, y: 440, width: 60, height: 20 },
+      { x: 260, y: 320, width: 40, height: 20 },
+      { x: 450, y: 230, width: 40, height: 20 },
+      { x: 650, y: 130, width: 40, height: 20 }
     ]
   }
 ];
@@ -407,6 +608,13 @@ function loadLevel(index) {
   platforms = level.platforms;
   spikes = level.spikes;
   exitPortal = level.portal;
+  dashOrbs = level.dashOrbs || [];
+  currentTheme = level.theme || "cyan";
+
+  dashCharges = 0;
+  isDashing = false;
+  dashTimer = 0;
+  dashText.textContent = dashCharges;
 
   player.x = level.playerStart.x;
   player.y = level.playerStart.y;
@@ -442,13 +650,21 @@ function updateTimer() {
 }
 
 function updatePlayer() {
-    if (levelEnding) return;
+  if (levelEnding) return;
 
   touchingWallLeft = false;
   touchingWallRight = false;
   wallSliding = false;
 
+  if (dashTimer > 0) {
+    dashTimer--;
+    if (dashTimer <= 0) {
+      isDashing = false;
+    }
+  }
+
   // Horizontal input
+  if (!isDashing) {
   if (keys.left) {
     player.vx -= moveSpeed;
     player.facing = -1;
@@ -457,13 +673,16 @@ function updatePlayer() {
     player.vx += moveSpeed;
     player.facing = 1;
   }
+}
 
   // Clamp horizontal speed
   if (player.vx > maxSpeed) player.vx = maxSpeed;
   if (player.vx < -maxSpeed) player.vx = -maxSpeed;
 
-  // Apply gravity
-  player.vy += gravity;
+  // Apply gravity unless actively dashing
+  if (!isDashing) {
+    player.vy += gravity;
+  }
 
   const prevX = player.x;
   const prevY = player.y;
@@ -472,7 +691,18 @@ function updatePlayer() {
   player.x += player.vx;
 
   for (const platform of platforms) {
-    if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
+    if (
+      rectOverlap(
+        player.x,
+        player.y,
+        player.width,
+        player.height,
+        platform.x,
+        platform.y,
+        platform.width,
+        platform.height
+      )
+    ) {
       if (prevX + player.width <= platform.x) {
         player.x = platform.x - player.width;
         player.vx = 0;
@@ -488,7 +718,18 @@ function updatePlayer() {
   onGround = false;
 
   for (const platform of platforms) {
-    if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
+    if (
+      rectOverlap(
+        player.x,
+        player.y,
+        player.width,
+        player.height,
+        platform.x,
+        platform.y,
+        platform.width,
+        platform.height
+      )
+    ) {
       if (prevY + player.height <= platform.y) {
         player.y = platform.y - player.height;
         player.vy = 0;
@@ -500,6 +741,17 @@ function updatePlayer() {
     }
   }
 
+  // Reset dash when landing
+  if (onGround) {
+    dashCharges = 0;
+    isDashing = false;
+    dashTimer = 0;
+    dashCharges = 0;
+isDashing = false;
+dashTimer = 0;
+dashText.textContent = dashCharges;
+  }
+
   // Keep in bounds
   if (player.x < 0) {
     player.x = 0;
@@ -508,6 +760,18 @@ function updatePlayer() {
   if (player.x + player.width > canvas.width) {
     player.x = canvas.width - player.width;
     player.vx = 0;
+  }
+
+  // Dash orb collection
+  for (const orb of dashOrbs) {
+    const dx = player.x + player.width / 2 - orb.x;
+    const dy = player.y + player.height / 2 - orb.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < orb.radius + 10) {
+  dashCharges = 1;
+  dashText.textContent = dashCharges;
+}
   }
 
   // Detect wall contact with tiny side probes
@@ -565,32 +829,73 @@ function updatePlayer() {
     if (Math.abs(player.vx) < 0.05) player.vx = 0;
   }
 
+  // Spike collision
   for (const spike of spikes) {
-  if (rectOverlap(player.x + 4, player.y + 4, player.width - 8, player.height - 6, spike.x, spike.y, spike.width, spike.height)) {
-    die();
+    if (
+      rectOverlap(
+        player.x + 4,
+        player.y + 4,
+        player.width - 8,
+        player.height - 6,
+        spike.x,
+        spike.y,
+        spike.width,
+        spike.height
+      )
+    ) {
+      die();
+      return;
+    }
+  }
+
+  // Portal collision
+  if (
+    rectOverlap(
+      player.x,
+      player.y,
+      player.width,
+      player.height,
+      exitPortal.x,
+      exitPortal.y,
+      exitPortal.width,
+      exitPortal.height
+    )
+  ) {
+    winLevel();
     return;
   }
-}
-
-if (
-  rectOverlap(
-    player.x,
-    player.y,
-    player.width,
-    player.height,
-    exitPortal.x,
-    exitPortal.y,
-    exitPortal.width,
-    exitPortal.height
-  )
-) {
-  winLevel();
-  return;
-}
 
   // Fall reset
   if (player.y > canvas.height + 100) {
     resetLevel();
+  }
+}
+
+function drawDashOrbs() {
+  for (const orb of dashOrbs) {
+    const t = performance.now() * 0.006;
+
+    ctx.save();
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = "#fb923c";
+
+    ctx.fillStyle = "#fdba74";
+    ctx.beginPath();
+    ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "#f97316";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(orb.x, orb.y, orb.radius + Math.sin(t) * 1.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff7ed";
+    ctx.beginPath();
+    ctx.arc(orb.x - 3, orb.y - 3, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
   }
 }
 
@@ -599,38 +904,38 @@ function drawExitPortal() {
   const cy = exitPortal.y + exitPortal.height / 2;
   const t = performance.now() * (levelEnding ? 0.012 : 0.005);
 
-  // outer glow
+  const outer = currentTheme === "magenta" ? "#f472b6" : "#a855f7";
+  const inner = currentTheme === "magenta" ? "#f9a8d4" : "#c084fc";
+  const core = currentTheme === "magenta" ? "rgba(244, 114, 182, 0.22)" : "rgba(216, 180, 254, 0.22)";
+  const particle = currentTheme === "magenta" ? "#ffe4e6" : "#e9d5ff";
+
   ctx.save();
   ctx.shadowBlur = 18;
-  ctx.shadowColor = "#a855f7";
+  ctx.shadowColor = outer;
 
-  // outer ring
-  ctx.strokeStyle = "#a855f7";
+  ctx.strokeStyle = outer;
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.ellipse(cx, cy, 12 + Math.sin(t) * 1.5, 20 + Math.cos(t) * 1.5, 0, 0, Math.PI * 2);
   ctx.stroke();
 
-  // inner ring
-  ctx.strokeStyle = "#c084fc";
+  ctx.strokeStyle = inner;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.ellipse(cx, cy, 7, 14, 0, 0, Math.PI * 2);
   ctx.stroke();
 
-  // core
-  ctx.fillStyle = "rgba(216, 180, 254, 0.22)";
+  ctx.fillStyle = core;
   ctx.beginPath();
   ctx.ellipse(cx, cy, 5, 10, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // particles
   for (let i = 0; i < 4; i++) {
     const angle = t + i * (Math.PI / 2);
     const px = cx + Math.cos(angle) * 10;
     const py = cy + Math.sin(angle) * 18;
 
-    ctx.fillStyle = "#e9d5ff";
+    ctx.fillStyle = particle;
     ctx.beginPath();
     ctx.arc(px, py, 2, 0, Math.PI * 2);
     ctx.fill();
@@ -647,32 +952,47 @@ function drawExitPortal() {
     }
 
     function drawBackground() {
-      // subtle stars / dots
-      ctx.fillStyle = "rgba(147, 197, 253, 0.15)";
-      for (let i = 0; i < 40; i++) {
-        const x = (i * 173) % canvas.width;
-        const y = (i * 97) % 220;
-        ctx.fillRect(x, y, 2, 2);
-      }
-    }
+  if (currentTheme === "magenta") {
+    const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bg.addColorStop(0, "#1a0b2e");
+    bg.addColorStop(1, "#0f172a");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "rgba(244, 114, 182, 0.18)";
+  } else {
+    ctx.fillStyle = "rgba(147, 197, 253, 0.15)";
+  }
+
+  for (let i = 0; i < 40; i++) {
+    const x = (i * 173) % canvas.width;
+    const y = (i * 97) % 220;
+    ctx.fillRect(x, y, 2, 2);
+  }
+}
 
     function drawPlatforms() {
-      for (const platform of platforms) {
-        // base
-        ctx.fillStyle = "#1f2937";
-        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+  const topColor = currentTheme === "magenta" ? "#f472b6" : "#22d3ee";
+  const baseColor = currentTheme === "magenta" ? "#312e81" : "#1f2937";
+  const highlightColor = currentTheme === "magenta" ? "#4338ca" : "#374151";
 
-        // neon top edge
-        ctx.fillStyle = "#22d3ee";
-        ctx.fillRect(platform.x, platform.y, platform.width, 4);
+  for (const platform of platforms) {
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
 
-        // highlight
-        ctx.fillStyle = "#374151";
-        ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
-      }
-    }
+    ctx.fillStyle = topColor;
+    ctx.fillRect(platform.x, platform.y, platform.width, 4);
+
+    ctx.fillStyle = highlightColor;
+    ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
+  }
+}
 
     function drawSpikes() {
+  const fill = currentTheme === "magenta" ? "#fda4af" : "#e5e7eb";
+  const edge = currentTheme === "magenta" ? "#fb7185" : "#94a3b8";
+  const base = currentTheme === "magenta" ? "#7f1d1d" : "#475569";
+
   for (const spike of spikes) {
     const spikeCount = spike.width / 10;
 
@@ -680,8 +1000,7 @@ function drawExitPortal() {
       const x = spike.x + i * 10;
       const y = spike.y;
 
-      // spike triangle
-      ctx.fillStyle = "#e5e7eb";
+      ctx.fillStyle = fill;
       ctx.beginPath();
       ctx.moveTo(x, y + spike.height);
       ctx.lineTo(x + 5, y);
@@ -689,14 +1008,12 @@ function drawExitPortal() {
       ctx.closePath();
       ctx.fill();
 
-      // darker edge
-      ctx.strokeStyle = "#94a3b8";
+      ctx.strokeStyle = edge;
       ctx.lineWidth = 1;
       ctx.stroke();
     }
 
-    // base strip
-    ctx.fillStyle = "#475569";
+    ctx.fillStyle = base;
     ctx.fillRect(spike.x, spike.y + spike.height - 3, spike.width, 3);
   }
 }
@@ -754,6 +1071,7 @@ function drawExitPortal() {
   drawBackground();
   drawPlatforms();
   drawSpikes();
+  drawDashOrbs();
   drawExitPortal();
   drawCelebration();
   drawPlayer();
@@ -768,40 +1086,51 @@ function drawExitPortal() {
 }
 
     window.addEventListener("keydown", (event) => {
-      const key = event.key.toLowerCase();
+  const key = event.key.toLowerCase();
 
-      if (key === "a" || event.key === "ArrowLeft") keys.left = true;
-      if (key === "d" || event.key === "ArrowRight") keys.right = true;
+  if (key === "a" || event.key === "ArrowLeft") keys.left = true;
+  if (key === "d" || event.key === "ArrowRight") keys.right = true;
 
-     if (key === "w" || key === " " || event.key === "ArrowUp") {
-  getAudioContext();
-
-  if (onGround) {
-    player.vy = jumpPower;
-    onGround = false;
-    statusText.textContent = "Jumping";
-    playJumpSound();
-  } else if (wallSliding) {
-    player.vy = jumpPower * 0.9;
-
-    if (touchingWallLeft) {
-      player.vx = 6;
-      player.facing = 1;
-    } else if (touchingWallRight) {
-      player.vx = -6;
-      player.facing = -1;
-    }
-
-    wallSliding = false;
-    statusText.textContent = "Wall jump!";
-    playWallJumpSound();
+  if ((key === "x" || event.key === "Shift") && dashCharges > 0 && !onGround && !isDashing) {
+    dashCharges = 0;
+    isDashing = true;
+    dashTimer = 10;
+    dashCharges = 0;
+dashText.textContent = dashCharges;
+    player.vy = 0;
+    player.vx = player.facing * 10;
+    statusText.textContent = "Dash!";
   }
-}
 
-      if (key === "r") {
-        resetLevel();
+  if (key === "w" || key === " " || event.key === "ArrowUp") {
+    getAudioContext();
+
+    if (onGround) {
+      player.vy = jumpPower;
+      onGround = false;
+      statusText.textContent = "Jumping";
+      playJumpSound();
+    } else if (wallSliding) {
+      player.vy = jumpPower * 0.9;
+
+      if (touchingWallLeft) {
+        player.vx = 6;
+        player.facing = 1;
+      } else if (touchingWallRight) {
+        player.vx = -6;
+        player.facing = -1;
       }
-    });
+
+      wallSliding = false;
+      statusText.textContent = "Wall jump!";
+      playWallJumpSound();
+    }
+  }
+
+  if (key === "r") {
+    resetLevel();
+  }
+});
 
     window.addEventListener("keyup", (event) => {
       const key = event.key.toLowerCase();
