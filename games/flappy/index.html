@@ -86,13 +86,13 @@
     <h1>Flappy</h1>
     <p>Tap the air and fly through the pipes.</p>
 
-    <div class="game-box">
-      <div class="hud">
-        <div class="scoreboard">Score: <span id="score">0</span></div>
-        <button class="button" id="resetButton">Reset Game</button>
-        <button class="button" id="soundButton">Sound: On</button>
-        <div class="scoreboard" id="statusText">Press Space to start</div>
-      </div>
+    <div class="hud">
+  <div class="scoreboard">Score: <span id="score">0</span></div>
+  <div class="scoreboard">Best: <span id="bestScore">0</span></div>
+  <button class="button" id="resetButton">Reset Game</button>
+  <button class="button" id="soundButton">Sound: On</button>
+  <div class="scoreboard" id="statusText">Press Space to start</div>
+</div>
 
       <canvas id="game" width="700" height="500"></canvas>
 
@@ -115,6 +115,7 @@
     const statusText = document.getElementById("statusText");
     const resetButton = document.getElementById("resetButton");
     const soundButton = document.getElementById("soundButton");
+    const bestScoreEl = document.getElementById("bestScore");
     const birdSprite = new Image();
 birdSprite.src = "/games/assets/flappy-bird-sprite.png";
 
@@ -133,6 +134,8 @@ birdSprite.src = "/games/assets/flappy-bird-sprite.png";
     let lastScorePlayedAt = 0;
     let clouds = [];
     let hills = [];
+    let bestScore = Number(localStorage.getItem("flappyBestScore")) || 0;
+bestScoreEl.textContent = bestScore;
 
     const bird = {
       x: 140,
@@ -377,8 +380,13 @@ function updateHills() {
   score += 1;
   scoreEl.textContent = score;
   playScoreSound();
-}
 
+  if (score > bestScore) {
+    bestScore = score;
+    bestScoreEl.textContent = bestScore;
+    localStorage.setItem("flappyBestScore", bestScore);
+  }
+}
         const hitPipeHorizontally =
           bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipeWidth;
 
@@ -393,10 +401,16 @@ function updateHills() {
       pipes = pipes.filter(pipe => pipe.x + pipeWidth > 0);
     }
 
-    function endGame() {
+   function endGame() {
   if (gameOver) return;
   gameOver = true;
-  statusText.textContent = "Game Over - Press R to restart";
+
+  if (score === bestScore && score > 0) {
+    statusText.textContent = "New Best! Press R to restart";
+  } else {
+    statusText.textContent = "Game Over - Press R to restart";
+  }
+
   playHitSound();
 }
 
@@ -577,7 +591,7 @@ function drawHills() {
       drawClouds();
       drawHills();
       drawPipes();
-      
+
  // Ground
 ctx.fillStyle = "#4d7c0f";
 ctx.fillRect(0, canvas.height - 24, canvas.width, 24);
