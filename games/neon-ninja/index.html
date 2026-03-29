@@ -196,9 +196,9 @@ let levelEnding = false;
 let levelStartTime = performance.now();
 let currentTime = 0;
 let bestTime = Number(localStorage.getItem("neonNinjaBestTime")) || null;
-bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
-let levelEnding = false;
 let celebrationParticles = [];
+
+bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
 
 const exitPortal = {
   x: 790,
