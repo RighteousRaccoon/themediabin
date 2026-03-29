@@ -188,6 +188,14 @@ ninjaSprite.onload = () => {
     let touchingWallLeft = false;
 let touchingWallRight = false;
 let wallSliding = false;
+let levelEnding = false;
+
+const exitPortal = {
+  x: 790,
+  y: 172,
+  width: 24,
+  height: 48
+};
 
     const platforms = [
   { x: 0, y: 460, width: 900, height: 40 },
@@ -216,6 +224,17 @@ function die() {
   resetLevel();
 }
 
+function winLevel() {
+  if (levelEnding) return;
+  levelEnding = true;
+  statusText.textContent = "Level complete!";
+
+  setTimeout(() => {
+    levelEnding = false;
+    resetLevel();
+  }, 500);
+}
+
     function resetLevel() {
       player.x = 80;
       player.y = 380;
@@ -224,6 +243,7 @@ function die() {
       player.facing = 1;
       onGround = false;
       statusText.textContent = "Ready";
+      levelEnding = false;
     }
 
     function updatePlayer() {
@@ -355,10 +375,71 @@ function die() {
   }
 }
 
+if (
+  rectOverlap(
+    player.x,
+    player.y,
+    player.width,
+    player.height,
+    exitPortal.x,
+    exitPortal.y,
+    exitPortal.width,
+    exitPortal.height
+  )
+) {
+  winLevel();
+  return;
+}
+
   // Fall reset
   if (player.y > canvas.height + 100) {
     resetLevel();
   }
+}
+
+function drawExitPortal() {
+  const cx = exitPortal.x + exitPortal.width / 2;
+  const cy = exitPortal.y + exitPortal.height / 2;
+  const t = performance.now() * 0.005;
+
+  // outer glow
+  ctx.save();
+  ctx.shadowBlur = 18;
+  ctx.shadowColor = "#a855f7";
+
+  // outer ring
+  ctx.strokeStyle = "#a855f7";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, 12 + Math.sin(t) * 1.5, 20 + Math.cos(t) * 1.5, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // inner ring
+  ctx.strokeStyle = "#c084fc";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, 7, 14, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // core
+  ctx.fillStyle = "rgba(216, 180, 254, 0.22)";
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, 5, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // particles
+  for (let i = 0; i < 4; i++) {
+    const angle = t + i * (Math.PI / 2);
+    const px = cx + Math.cos(angle) * 10;
+    const py = cy + Math.sin(angle) * 18;
+
+    ctx.fillStyle = "#e9d5ff";
+    ctx.beginPath();
+    ctx.arc(px, py, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
 }
 
     function rectOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
@@ -471,11 +552,12 @@ function die() {
   ctx.restore();
 }
 
-    function draw() {
+   function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBackground();
   drawPlatforms();
   drawSpikes();
+  drawExitPortal();
   drawPlayer();
 }
 
