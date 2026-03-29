@@ -105,6 +105,7 @@
 
     <div class="game-box">
       <div class="hud">
+  <div class="scoreboard">Level: <span id="levelText">1</span></div>
   <div class="scoreboard">Status: <span id="statusText">Ready</span></div>
   <div class="scoreboard">Time: <span id="timerText">0.000</span>s</div>
   <div class="scoreboard">Best: <span id="bestTimeText">--</span></div>
@@ -132,9 +133,10 @@
     ctx.imageSmoothingEnabled = false;
 
     const statusText = document.getElementById("statusText");
-    const resetButton = document.getElementById("resetButton");
-    const timerText = document.getElementById("timerText");
+const resetButton = document.getElementById("resetButton");
+const timerText = document.getElementById("timerText");
 const bestTimeText = document.getElementById("bestTimeText");
+const levelText = document.getElementById("levelText");
 
     const ninjaSprite = new Image();
     ninjaSprite.src = "/games/assets/ninja.png";
@@ -200,39 +202,70 @@ let celebrationParticles = [];
 
 bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
 
-const exitPortal = {
-  x: 790,
-  y: 172,
-  width: 24,
-  height: 48
-};
-
-    const platforms = [
-  { x: 0, y: 460, width: 900, height: 40 },
-
-  { x: 120, y: 390, width: 120, height: 20 },
-  { x: 300, y: 340, width: 140, height: 20 },
-  { x: 520, y: 280, width: 120, height: 20 },
-  { x: 700, y: 220, width: 120, height: 20 },
-
-  // Walls for wall-jump testing
-  { x: 420, y: 220, width: 20, height: 180 },
-  { x: 640, y: 140, width: 20, height: 180 }
-];
-
-const spikes = [
-  { x: 260, y: 440, width: 40, height: 20 },
-  { x: 480, y: 440, width: 40, height: 20 },
-  { x: 720, y: 440, width: 40, height: 20 },
-
-  { x: 360, y: 320, width: 40, height: 20 },
-  { x: 580, y: 260, width: 40, height: 20 }
-];
-
 function die() {
   statusText.textContent = "You died!";
   resetLevel();
 }
+
+let currentLevel = 0;
+let platforms = [];
+let spikes = [];
+let exitPortal = {};
+
+const levels = [
+  {
+    name: "Level 1",
+    playerStart: { x: 80, y: 380 },
+    portal: { x: 790, y: 172, width: 24, height: 48 },
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+
+      { x: 120, y: 390, width: 120, height: 20 },
+      { x: 300, y: 340, width: 140, height: 20 },
+      { x: 520, y: 280, width: 120, height: 20 },
+      { x: 700, y: 220, width: 120, height: 20 },
+
+      { x: 420, y: 220, width: 20, height: 180 },
+      { x: 640, y: 140, width: 20, height: 180 }
+    ],
+    spikes: [
+      { x: 260, y: 440, width: 40, height: 20 },
+      { x: 480, y: 440, width: 40, height: 20 },
+      { x: 720, y: 440, width: 40, height: 20 },
+
+      { x: 360, y: 320, width: 40, height: 20 },
+      { x: 580, y: 260, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 2",
+    playerStart: { x: 70, y: 410 },
+    portal: { x: 770, y: 92, width: 24, height: 48 },
+    platforms: [
+      { x: 0, y: 460, width: 900, height: 40 },
+
+      { x: 80, y: 420, width: 120, height: 20 },
+      { x: 240, y: 360, width: 100, height: 20 },
+      { x: 400, y: 300, width: 100, height: 20 },
+      { x: 560, y: 220, width: 100, height: 20 },
+      { x: 720, y: 140, width: 100, height: 20 },
+
+      { x: 340, y: 260, width: 20, height: 140 },
+      { x: 520, y: 180, width: 20, height: 140 }
+    ],
+    spikes: [
+      { x: 210, y: 440, width: 40, height: 20 },
+      { x: 360, y: 440, width: 40, height: 20 },
+      { x: 510, y: 440, width: 40, height: 20 },
+      { x: 660, y: 440, width: 40, height: 20 },
+
+      { x: 280, y: 340, width: 40, height: 20 },
+      { x: 440, y: 280, width: 40, height: 20 },
+      { x: 600, y: 200, width: 40, height: 20 }
+    ]
+  }
+];
 
 function spawnCelebration(x, y) {
   const colors = ["#a855f7", "#c084fc", "#e9d5ff", "#22d3ee"];
@@ -299,13 +332,28 @@ function winLevel() {
   );
 
   setTimeout(() => {
-    resetLevel();
+    if (currentLevel < levels.length - 1) {
+      currentLevel += 1;
+      loadLevel(currentLevel);
+    } else {
+      statusText.textContent = "You beat all levels!";
+      currentLevel = 0;
+      setTimeout(() => {
+        loadLevel(currentLevel);
+      }, 700);
+    }
   }, 900);
 }
 
-    function resetLevel() {
-  player.x = 80;
-  player.y = 380;
+function loadLevel(index) {
+  const level = levels[index];
+
+  platforms = level.platforms;
+  spikes = level.spikes;
+  exitPortal = level.portal;
+
+  player.x = level.playerStart.x;
+  player.y = level.playerStart.y;
   player.vx = 0;
   player.vy = 0;
   player.facing = 1;
@@ -322,7 +370,12 @@ function winLevel() {
   currentTime = 0;
   timerText.textContent = "0.000s";
 
+  levelText.textContent = String(index + 1);
   statusText.textContent = "Ready";
+}
+
+    function resetLevel() {
+  loadLevel(currentLevel);
 }
 
 function updateTimer() {
@@ -699,7 +752,7 @@ function drawExitPortal() {
 
     resetButton.addEventListener("click", resetLevel);
 
-    resetLevel();
+    loadLevel(currentLevel);
     gameLoop();
   </script>
 </body>
