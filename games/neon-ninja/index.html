@@ -202,6 +202,20 @@ let wallSliding = false;
   { x: 640, y: 140, width: 20, height: 180 }
 ];
 
+const spikes = [
+  { x: 260, y: 440, width: 40, height: 20 },
+  { x: 480, y: 440, width: 40, height: 20 },
+  { x: 720, y: 440, width: 40, height: 20 },
+
+  { x: 360, y: 320, width: 40, height: 20 },
+  { x: 580, y: 260, width: 40, height: 20 }
+];
+
+function die() {
+  statusText.textContent = "You died!";
+  resetLevel();
+}
+
     function resetLevel() {
       player.x = 80;
       player.y = 380;
@@ -334,6 +348,13 @@ let wallSliding = false;
     if (Math.abs(player.vx) < 0.05) player.vx = 0;
   }
 
+  for (const spike of spikes) {
+  if (rectOverlap(player.x + 4, player.y + 4, player.width - 8, player.height - 6, spike.x, spike.y, spike.width, spike.height)) {
+    die();
+    return;
+  }
+}
+
   // Fall reset
   if (player.y > canvas.height + 100) {
     resetLevel();
@@ -372,6 +393,35 @@ let wallSliding = false;
         ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
       }
     }
+
+    function drawSpikes() {
+  for (const spike of spikes) {
+    const spikeCount = spike.width / 10;
+
+    for (let i = 0; i < spikeCount; i++) {
+      const x = spike.x + i * 10;
+      const y = spike.y;
+
+      // spike triangle
+      ctx.fillStyle = "#e5e7eb";
+      ctx.beginPath();
+      ctx.moveTo(x, y + spike.height);
+      ctx.lineTo(x + 5, y);
+      ctx.lineTo(x + 10, y + spike.height);
+      ctx.closePath();
+      ctx.fill();
+
+      // darker edge
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // base strip
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(spike.x, spike.y + spike.height - 3, spike.width, 3);
+  }
+}
 
     function drawPlayer() {
   const sprite = processedNinjaSprite || ninjaSprite;
@@ -422,11 +472,12 @@ let wallSliding = false;
 }
 
     function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawBackground();
-      drawPlatforms();
-      drawPlayer();
-    }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBackground();
+  drawPlatforms();
+  drawSpikes();
+  drawPlayer();
+}
 
     function gameLoop() {
       updatePlayer();
