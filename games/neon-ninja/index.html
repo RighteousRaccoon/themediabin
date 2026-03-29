@@ -153,9 +153,9 @@ ninjaSprite.onload = () => {
     const b = data[i + 2];
 
     // Make near-white pixels transparent
-    if (r > 235 && g > 235 && b > 235) {
-      data[i + 3] = 0;
-    }
+    if (r > 215 && g > 215 && b > 215) {
+  data[i + 3] = 0;
+}
   }
 
   offCtx.putImageData(imageData, 0, 0);
@@ -386,23 +386,24 @@ let wallSliding = false;
     frame = Math.floor(performance.now() / 120) % 2 + 1; // run1/run2
   }
 
-  // Better crop for this specific sheet
-  const cropX = frame * frameWidth + frameWidth * 0.12;
-  const cropY = frameHeight * 0.08;
-  const cropW = frameWidth * 0.76;
-  const cropH = frameHeight * 0.84;
+  // Looser crop with more vertical room
+  const cropX = frame * frameWidth + frameWidth * 0.10;
+  const cropY = frameHeight * 0.04;
+  const cropW = frameWidth * 0.80;
+  const cropH = frameHeight * 0.92;
 
-  const drawWidth = 56;
-  const drawHeight = 56;
+  // Taller draw size so the ninja keeps its proportions
+  const drawWidth = 52;
+  const drawHeight = 72;
 
   ctx.save();
-  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 2);
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 6);
 
   if (player.facing < 0) {
     ctx.scale(-1, 1);
   }
 
-  if (sprite.complete || processedNinjaSprite) {
+  if (processedNinjaSprite || (sprite.complete && sprite.naturalWidth > 0)) {
     ctx.drawImage(
       sprite,
       cropX, cropY,
