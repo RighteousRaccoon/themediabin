@@ -134,6 +134,33 @@
 
     const ninjaSprite = new Image();
     ninjaSprite.src = "/games/assets/ninja.png";
+    let processedNinjaSprite = null;
+
+ninjaSprite.onload = () => {
+  const off = document.createElement("canvas");
+  off.width = ninjaSprite.width;
+  off.height = ninjaSprite.height;
+  const offCtx = off.getContext("2d");
+  offCtx.imageSmoothingEnabled = false;
+  offCtx.drawImage(ninjaSprite, 0, 0);
+
+  const imageData = offCtx.getImageData(0, 0, off.width, off.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    // Make near-white pixels transparent
+    if (r > 235 && g > 235 && b > 235) {
+      data[i + 3] = 0;
+    }
+  }
+
+  offCtx.putImageData(imageData, 0, 0);
+  processedNinjaSprite = off;
+};
 
     const gravity = 0.6;
     const moveSpeed = 0.8;
@@ -163,12 +190,17 @@ let touchingWallRight = false;
 let wallSliding = false;
 
     const platforms = [
-      { x: 0, y: 460, width: 900, height: 40 },
-      { x: 120, y: 390, width: 120, height: 20 },
-      { x: 300, y: 340, width: 140, height: 20 },
-      { x: 520, y: 280, width: 120, height: 20 },
-      { x: 700, y: 220, width: 120, height: 20 }
-    ];
+  { x: 0, y: 460, width: 900, height: 40 },
+
+  { x: 120, y: 390, width: 120, height: 20 },
+  { x: 300, y: 340, width: 140, height: 20 },
+  { x: 520, y: 280, width: 120, height: 20 },
+  { x: 700, y: 220, width: 120, height: 20 },
+
+  // Walls for wall-jump testing
+  { x: 420, y: 220, width: 20, height: 180 },
+  { x: 640, y: 140, width: 20, height: 180 }
+];
 
     function resetLevel() {
       player.x = 80;
@@ -202,33 +234,28 @@ let wallSliding = false;
   // Apply gravity
   player.vy += gravity;
 
-  // Save previous position
   const prevX = player.x;
   const prevY = player.y;
 
-  // Move horizontally
+  // Horizontal move
   player.x += player.vx;
 
-  // Horizontal collisions
   for (const platform of platforms) {
     if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
       if (prevX + player.width <= platform.x) {
         player.x = platform.x - player.width;
         player.vx = 0;
-        touchingWallRight = true;
       } else if (prevX >= platform.x + platform.width) {
         player.x = platform.x + platform.width;
         player.vx = 0;
-        touchingWallLeft = true;
       }
     }
   }
 
-  // Move vertically
+  // Vertical move
   player.y += player.vy;
   onGround = false;
 
-  // Vertical collisions
   for (const platform of platforms) {
     if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
       if (prevY + player.height <= platform.y) {
@@ -242,12 +269,58 @@ let wallSliding = false;
     }
   }
 
+  // Keep in bounds
+  if (player.x < 0) {
+    player.x = 0;
+    player.vx = 0;
+  }
+  if (player.x + player.width > canvas.width) {
+    player.x = canvas.width - player.width;
+    player.vx = 0;
+  }
+
+  // Detect wall contact with tiny side probes
+  const probe = 2;
+  for (const platform of platforms) {
+    if (
+      rectOverlap(
+        player.x - probe,
+        player.y + 2,
+        probe,
+        player.height - 4,
+        platform.x,
+        platform.y,
+        platform.width,
+        platform.height
+      )
+    ) {
+      touchingWallLeft = true;
+    }
+
+    if (
+      rectOverlap(
+        player.x + player.width,
+        player.y + 2,
+        probe,
+        player.height - 4,
+        platform.x,
+        platform.y,
+        platform.width,
+        platform.height
+      )
+    ) {
+      touchingWallRight = true;
+    }
+  }
+
+  // Canvas edges count as walls too
+  if (player.x <= 0) touchingWallLeft = true;
+  if (player.x + player.width >= canvas.width) touchingWallRight = true;
+
   // Wall slide
   if (!onGround && player.vy > 0 && (touchingWallLeft || touchingWallRight)) {
     wallSliding = true;
-    if (player.vy > 2) {
-      player.vy = 2;
-    }
+    if (player.vy > 2) player.vy = 2;
     statusText.textContent = "Wall sliding";
   } else if (!onGround) {
     statusText.textContent = "Jumping";
@@ -255,22 +328,10 @@ let wallSliding = false;
     statusText.textContent = "Ready";
   }
 
-  // Friction
+  // Ground friction
   if (!keys.left && !keys.right && onGround) {
     player.vx *= friction;
     if (Math.abs(player.vx) < 0.05) player.vx = 0;
-  }
-
-  // Keep in bounds
-  if (player.x < 0) {
-    player.x = 0;
-    player.vx = 0;
-    touchingWallLeft = true;
-  }
-  if (player.x + player.width > canvas.width) {
-    player.x = canvas.width - player.width;
-    player.vx = 0;
-    touchingWallRight = true;
   }
 
   // Fall reset
@@ -313,36 +374,37 @@ let wallSliding = false;
     }
 
     function drawPlayer() {
-  const frameWidth = ninjaSprite.width / 4;
-  const frameHeight = ninjaSprite.height;
+  const sprite = processedNinjaSprite || ninjaSprite;
+  const frameWidth = sprite.width / 4;
+  const frameHeight = sprite.height;
 
   let frame = 0; // idle
 
-  if (!onGround) {
-    frame = 3; // jump
+  if (!onGround || wallSliding) {
+    frame = 3; // jump / wall slide
   } else if (Math.abs(player.vx) > 0.2) {
     frame = Math.floor(performance.now() / 120) % 2 + 1; // run1/run2
   }
 
-  // Crop inside each frame to remove white background padding
-  const cropX = frame * frameWidth + frameWidth * 0.18;
-  const cropY = frameHeight * 0.18;
-  const cropW = frameWidth * 0.64;
-  const cropH = frameHeight * 0.68;
+  // Better crop for this specific sheet
+  const cropX = frame * frameWidth + frameWidth * 0.12;
+  const cropY = frameHeight * 0.08;
+  const cropW = frameWidth * 0.76;
+  const cropH = frameHeight * 0.84;
 
-  const drawWidth = 64;
-  const drawHeight = 64;
+  const drawWidth = 56;
+  const drawHeight = 56;
 
   ctx.save();
-  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 4);
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 2);
 
   if (player.facing < 0) {
     ctx.scale(-1, 1);
   }
 
-  if (ninjaSprite.complete && ninjaSprite.naturalWidth > 0) {
+  if (sprite.complete || processedNinjaSprite) {
     ctx.drawImage(
-      ninjaSprite,
+      sprite,
       cropX, cropY,
       cropW, cropH,
       -drawWidth / 2, -drawHeight / 2,
