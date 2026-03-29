@@ -158,6 +158,9 @@
     };
 
     let onGround = false;
+    let touchingWallLeft = false;
+let touchingWallRight = false;
+let wallSliding = false;
 
     const platforms = [
       { x: 0, y: 460, width: 900, height: 40 },
@@ -178,82 +181,103 @@
     }
 
     function updatePlayer() {
-      // Horizontal input
-      if (keys.left) {
-        player.vx -= moveSpeed;
-        player.facing = -1;
-      }
-      if (keys.right) {
-        player.vx += moveSpeed;
-        player.facing = 1;
-      }
+  touchingWallLeft = false;
+  touchingWallRight = false;
+  wallSliding = false;
 
-      // Clamp horizontal speed
-      if (player.vx > maxSpeed) player.vx = maxSpeed;
-      if (player.vx < -maxSpeed) player.vx = -maxSpeed;
+  // Horizontal input
+  if (keys.left) {
+    player.vx -= moveSpeed;
+    player.facing = -1;
+  }
+  if (keys.right) {
+    player.vx += moveSpeed;
+    player.facing = 1;
+  }
 
-      // Apply gravity
-      player.vy += gravity;
+  // Clamp horizontal speed
+  if (player.vx > maxSpeed) player.vx = maxSpeed;
+  if (player.vx < -maxSpeed) player.vx = -maxSpeed;
 
-      // Save previous position
-      const prevX = player.x;
-      const prevY = player.y;
+  // Apply gravity
+  player.vy += gravity;
 
-      // Move horizontally
-      player.x += player.vx;
+  // Save previous position
+  const prevX = player.x;
+  const prevY = player.y;
 
-      // Horizontal collisions
-      for (const platform of platforms) {
-        if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
-          if (prevX + player.width <= platform.x) {
-            player.x = platform.x - player.width;
-            player.vx = 0;
-          } else if (prevX >= platform.x + platform.width) {
-            player.x = platform.x + platform.width;
-            player.vx = 0;
-          }
-        }
-      }
+  // Move horizontally
+  player.x += player.vx;
 
-      // Move vertically
-      player.y += player.vy;
-      onGround = false;
-
-      // Vertical collisions
-      for (const platform of platforms) {
-        if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
-          if (prevY + player.height <= platform.y) {
-            player.y = platform.y - player.height;
-            player.vy = 0;
-            onGround = true;
-          } else if (prevY >= platform.y + platform.height) {
-            player.y = platform.y + platform.height;
-            player.vy = 0;
-          }
-        }
-      }
-
-      // Friction
-      if (!keys.left && !keys.right && onGround) {
-        player.vx *= friction;
-        if (Math.abs(player.vx) < 0.05) player.vx = 0;
-      }
-
-      // Keep in bounds
-      if (player.x < 0) {
-        player.x = 0;
+  // Horizontal collisions
+  for (const platform of platforms) {
+    if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
+      if (prevX + player.width <= platform.x) {
+        player.x = platform.x - player.width;
         player.vx = 0;
-      }
-      if (player.x + player.width > canvas.width) {
-        player.x = canvas.width - player.width;
+        touchingWallRight = true;
+      } else if (prevX >= platform.x + platform.width) {
+        player.x = platform.x + platform.width;
         player.vx = 0;
-      }
-
-      // Fall reset
-      if (player.y > canvas.height + 100) {
-        resetLevel();
+        touchingWallLeft = true;
       }
     }
+  }
+
+  // Move vertically
+  player.y += player.vy;
+  onGround = false;
+
+  // Vertical collisions
+  for (const platform of platforms) {
+    if (rectOverlap(player.x, player.y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
+      if (prevY + player.height <= platform.y) {
+        player.y = platform.y - player.height;
+        player.vy = 0;
+        onGround = true;
+      } else if (prevY >= platform.y + platform.height) {
+        player.y = platform.y + platform.height;
+        player.vy = 0;
+      }
+    }
+  }
+
+  // Wall slide
+  if (!onGround && player.vy > 0 && (touchingWallLeft || touchingWallRight)) {
+    wallSliding = true;
+    if (player.vy > 2) {
+      player.vy = 2;
+    }
+    statusText.textContent = "Wall sliding";
+  } else if (!onGround) {
+    statusText.textContent = "Jumping";
+  } else {
+    statusText.textContent = "Ready";
+  }
+
+  // Friction
+  if (!keys.left && !keys.right && onGround) {
+    player.vx *= friction;
+    if (Math.abs(player.vx) < 0.05) player.vx = 0;
+  }
+
+  // Keep in bounds
+  if (player.x < 0) {
+    player.x = 0;
+    player.vx = 0;
+    touchingWallLeft = true;
+  }
+  if (player.x + player.width > canvas.width) {
+    player.x = canvas.width - player.width;
+    player.vx = 0;
+    touchingWallRight = true;
+  }
+
+  // Fall reset
+  if (player.y > canvas.height + 100) {
+    resetLevel();
+  }
+}
 
     function rectOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
       return ax < bx + bw &&
@@ -289,45 +313,50 @@
     }
 
     function drawPlayer() {
-      const frameWidth = ninjaSprite.width / 4;
-      const frameHeight = ninjaSprite.height;
+  const frameWidth = ninjaSprite.width / 4;
+  const frameHeight = ninjaSprite.height;
 
-      let frame = 0; // idle
+  let frame = 0; // idle
 
-      if (!onGround) {
-        frame = 3; // jump
-      } else if (Math.abs(player.vx) > 0.2) {
-        frame = Math.floor(performance.now() / 120) % 2 + 1; // run1/run2
-      }
+  if (!onGround) {
+    frame = 3; // jump
+  } else if (Math.abs(player.vx) > 0.2) {
+    frame = Math.floor(performance.now() / 120) % 2 + 1; // run1/run2
+  }
 
-      const drawWidth = 52;
-      const drawHeight = 52;
+  // Crop inside each frame to remove white background padding
+  const cropX = frame * frameWidth + frameWidth * 0.18;
+  const cropY = frameHeight * 0.18;
+  const cropW = frameWidth * 0.64;
+  const cropH = frameHeight * 0.68;
 
-      ctx.save();
-      ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 4);
+  const drawWidth = 64;
+  const drawHeight = 64;
 
-      if (player.facing < 0) {
-        ctx.scale(-1, 1);
-      }
+  ctx.save();
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 4);
 
-      if (ninjaSprite.complete && ninjaSprite.naturalWidth > 0) {
-        ctx.drawImage(
-          ninjaSprite,
-          frame * frameWidth, 0,
-          frameWidth, frameHeight,
-          -drawWidth / 2, -drawHeight / 2,
-          drawWidth, drawHeight
-        );
-      } else {
-        // fallback
-        ctx.fillStyle = "#1f2937";
-        ctx.fillRect(-12, -14, 24, 28);
-        ctx.fillStyle = "#22d3ee";
-        ctx.fillRect(-8, -4, 16, 4);
-      }
+  if (player.facing < 0) {
+    ctx.scale(-1, 1);
+  }
 
-      ctx.restore();
-    }
+  if (ninjaSprite.complete && ninjaSprite.naturalWidth > 0) {
+    ctx.drawImage(
+      ninjaSprite,
+      cropX, cropY,
+      cropW, cropH,
+      -drawWidth / 2, -drawHeight / 2,
+      drawWidth, drawHeight
+    );
+  } else {
+    ctx.fillStyle = "#1f2937";
+    ctx.fillRect(-12, -14, 24, 28);
+    ctx.fillStyle = "#22d3ee";
+    ctx.fillRect(-8, -4, 16, 4);
+  }
+
+  ctx.restore();
+}
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -348,11 +377,26 @@
       if (key === "a" || event.key === "ArrowLeft") keys.left = true;
       if (key === "d" || event.key === "ArrowRight") keys.right = true;
 
-      if ((key === "w" || key === " " || event.key === "ArrowUp") && onGround) {
-        player.vy = jumpPower;
-        onGround = false;
-        statusText.textContent = "Jumping";
-      }
+      if (key === "w" || key === " " || event.key === "ArrowUp") {
+  if (onGround) {
+    player.vy = jumpPower;
+    onGround = false;
+    statusText.textContent = "Jumping";
+  } else if (wallSliding) {
+    player.vy = jumpPower * 0.9;
+
+    if (touchingWallLeft) {
+      player.vx = 6;
+      player.facing = 1;
+    } else if (touchingWallRight) {
+      player.vx = -6;
+      player.facing = -1;
+    }
+
+    wallSliding = false;
+    statusText.textContent = "Wall jump!";
+  }
+}
 
       if (key === "r") {
         resetLevel();
