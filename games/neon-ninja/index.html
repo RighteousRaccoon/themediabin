@@ -17,6 +17,7 @@
       align-items: center;
       justify-content: center;
       padding: 30px;
+      touch-action: manipulation;
     }
 
     .wrapper {
@@ -75,6 +76,65 @@
   -moz-appearance: none;
 }
 
+.mobile-controls {
+  display: none;
+  margin-top: 18px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.mobile-btn {
+  border: none;
+  border-radius: 16px;
+  min-height: 68px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  background: #1e293b;
+  border: 1px solid #334155;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  touch-action: manipulation;
+}
+
+.mobile-btn:active,
+.mobile-btn.active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+.mobile-btn-jump {
+  background: #2563eb;
+}
+
+.mobile-btn-dash {
+  background: #7c3aed;
+}
+
+@media (max-width: 900px) {
+  .mobile-controls {
+    display: block;
+  }
+
+  body {
+    padding: 14px;
+  }
+
+  .game-box {
+    padding: 16px;
+  }
+
+  .hud {
+    justify-content: center;
+  }
+}
+
     canvas {
       background: linear-gradient(180deg, #020617, #111827);
       border: 1px solid #334155;
@@ -86,6 +146,15 @@
       margin: 0 auto;
       image-rendering: pixelated;
     }
+
+    <div class="mobile-controls" id="mobileControls">
+  <div class="mobile-row">
+    <button class="mobile-btn" id="leftBtn">◀</button>
+    <button class="mobile-btn" id="rightBtn">▶</button>
+    <button class="mobile-btn mobile-btn-jump" id="jumpBtn">▲</button>
+    <button class="mobile-btn mobile-btn-dash" id="dashBtn">◆</button>
+  </div>
+</div>
 
     .controls {
       margin-top: 16px;
@@ -164,6 +233,10 @@ const soundButton = document.getElementById("soundButton");
 const dashText = document.getElementById("dashText");
 const levelSelect = document.getElementById("levelSelect");
 const goLevelButton = document.getElementById("goLevelButton");
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
+const jumpBtn = document.getElementById("jumpBtn");
+const dashBtn = document.getElementById("dashBtn");
 
     const ninjaSprite = new Image();
     ninjaSprite.src = "/games/assets/ninja.png";
@@ -726,6 +799,98 @@ statusText.textContent = "Level complete!";
     exitPortal.x + exitPortal.width / 2,
     exitPortal.y + exitPortal.height / 2
   );
+
+  function bindHoldButton(button, onPress, onRelease) {
+  if (!button) return;
+
+  const press = (event) => {
+    event.preventDefault();
+    button.classList.add("active");
+    onPress();
+  };
+
+  const release = (event) => {
+    event.preventDefault();
+    button.classList.remove("active");
+    onRelease();
+  };
+
+  button.addEventListener("touchstart", press, { passive: false });
+  button.addEventListener("touchend", release, { passive: false });
+  button.addEventListener("touchcancel", release, { passive: false });
+
+  button.addEventListener("mousedown", press);
+  button.addEventListener("mouseup", release);
+  button.addEventListener("mouseleave", release);
+}
+
+bindHoldButton(leftBtn, () => {
+  keys.left = true;
+}, () => {
+  keys.left = false;
+});
+
+bindHoldButton(rightBtn, () => {
+  keys.right = true;
+}, () => {
+  keys.right = false;
+});
+
+if (jumpBtn) {
+  jumpBtn.addEventListener("touchstart", (event) => {
+    event.preventDefault();
+    jumpBtn.classList.add("active");
+    tryJump();
+  }, { passive: false });
+
+  jumpBtn.addEventListener("touchend", (event) => {
+    event.preventDefault();
+    jumpBtn.classList.remove("active");
+  }, { passive: false });
+
+  jumpBtn.addEventListener("mousedown", () => {
+    jumpBtn.classList.add("active");
+    tryJump();
+  });
+
+  jumpBtn.addEventListener("mouseup", () => {
+    jumpBtn.classList.remove("active");
+  });
+
+  jumpBtn.addEventListener("mouseleave", () => {
+    jumpBtn.classList.remove("active");
+  });
+}
+
+if (dashBtn) {
+  dashBtn.addEventListener("touchstart", (event) => {
+    event.preventDefault();
+    dashBtn.classList.add("active");
+    tryDash();
+  }, { passive: false });
+
+  dashBtn.addEventListener("touchend", (event) => {
+    event.preventDefault();
+    dashBtn.classList.remove("active");
+  }, { passive: false });
+
+  dashBtn.addEventListener("mousedown", () => {
+    dashBtn.classList.add("active");
+    tryDash();
+  });
+
+  dashBtn.addEventListener("mouseup", () => {
+    dashBtn.classList.remove("active");
+  });
+
+  dashBtn.addEventListener("mouseleave", () => {
+    dashBtn.classList.remove("active");
+  });
+}
+
+canvas.addEventListener("touchstart", (event) => {
+  event.preventDefault();
+}, { passive: false });
 
   setTimeout(() => {
     if (currentLevel < levels.length - 1) {
@@ -1329,6 +1494,45 @@ function drawExitPortal() {
   requestAnimationFrame(gameLoop);
 }
 
+function tryJump() {
+  getAudioContext();
+
+  if (onGround) {
+    player.vy = jumpPower;
+    onGround = false;
+    statusText.textContent = "Jumping";
+    playJumpSound();
+  } else if (wallSliding) {
+    player.vy = jumpPower * 0.9;
+
+    if (touchingWallLeft) {
+      player.vx = 6;
+      player.facing = 1;
+    } else if (touchingWallRight) {
+      player.vx = -6;
+      player.facing = -1;
+    }
+
+    wallSliding = false;
+    statusText.textContent = "Wall jump!";
+    playWallJumpSound();
+  }
+}
+
+function tryDash() {
+  if (dashCharges > 0 && !onGround && !isDashing) {
+    dashCharges = 0;
+    dashText.textContent = dashCharges;
+    isDashing = true;
+    dashTimer = 14;
+    player.vy = 0;
+    player.vx = player.facing * 15;
+    statusText.textContent = "Dash!";
+    playDashSound();
+    addScreenShake(4);
+  }
+}
+
    window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
 
@@ -1339,42 +1543,14 @@ function drawExitPortal() {
   if (key === "a" || event.key === "ArrowLeft") keys.left = true;
   if (key === "d" || event.key === "ArrowRight") keys.right = true;
 
-  if ((key === "x" || event.key === "Shift") && dashCharges > 0 && !onGround && !isDashing) {
- dashCharges = 0;
-dashText.textContent = dashCharges;
-isDashing = true;
-dashTimer = 14;
-player.vy = 0;
-player.vx = player.facing * 15;
-statusText.textContent = "Dash!";
-playDashSound();
-addScreenShake(4);
+ if (key === "x" || event.key === "Shift") {
+  tryDash();
 }
 
   if (key === "w" || key === " " || event.key === "ArrowUp") {
-    getAudioContext();
+  tryJump();
+}
 
-    if (onGround) {
-      player.vy = jumpPower;
-      onGround = false;
-      statusText.textContent = "Jumping";
-      playJumpSound();
-    } else if (wallSliding) {
-      player.vy = jumpPower * 0.9;
-
-      if (touchingWallLeft) {
-        player.vx = 6;
-        player.facing = 1;
-      } else if (touchingWallRight) {
-        player.vx = -6;
-        player.facing = -1;
-      }
-
-      wallSliding = false;
-      statusText.textContent = "Wall jump!";
-      playWallJumpSound();
-    }
-  }
 
   if (key === "r") {
     resetLevel();
