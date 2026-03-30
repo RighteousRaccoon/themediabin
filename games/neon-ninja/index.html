@@ -84,7 +84,7 @@
   border: 1px solid #334155;
   border-radius: 12px;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   height: auto;
   display: block;
   margin: 0 auto;
@@ -92,10 +92,10 @@
   touch-action: none;
 }
 
-    .play-area {
+   .play-area {
   position: relative;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -111,7 +111,7 @@
     }
 
     .play-area:fullscreen canvas {
-      width: min(100vw, calc((100vh - 8px) * 1.8));
+  width: min(100vw, calc((100vh - 10px) * 2));
       height: auto;
       max-width: 100vw;
       max-height: calc(100vh - 8px);
@@ -329,7 +329,7 @@
       }
 
       .play-area:fullscreen canvas {
-        width: min(100vw, calc((100vh - 10px) * 1.8));
+  width: min(100vw, calc((100vh - 8px) * 2));
         max-height: calc(100vh - 10px);
       }
     }
@@ -400,8 +400,7 @@
       </div>
 
       <div class="play-area" id="playArea">
-        <canvas id="game" width="900" height="500"></canvas>
-
+        <canvas id="game" width="1100" height="550"></canvas>
         <button class="fullscreen-btn" id="fullscreenButton" type="button" aria-label="Toggle fullscreen">⛶</button>
 
         <div class="mobile-controls" id="mobileControls">
@@ -490,20 +489,6 @@
     const COYOTE_FRAMES = 8;
     const JUMP_BUFFER_FRAMES = 8;
 
-    const antiCheatPlatform = {
-  x: 735,
-  y: 210,
-  width: 155,
-  height: 18
-};
-
-const antiCheatRoof = {
-  x: 0,
-  y: 8,
-  width: 900,
-  height: 14
-};
-
     const keys = {
       left: false,
       right: false
@@ -552,6 +537,10 @@ const antiCheatRoof = {
     let antiCheatPlatformTimer = 0;
     let antiCheatRoofActive = false;
 let antiCheatRoofTimer = 0;
+let antiCheatPlatform = null;
+let antiCheatRoof = null;
+let antiCheatTrigger = null;
+let antiCheatRoofTrigger = null;
 
     let currentLevel = 0;
     let platforms = [];
@@ -663,252 +652,305 @@ let antiCheatRoofTimer = 0;
     }
 
     const levels = [
-      {
-        name: "Level 1",
-        theme: "cyan",
-        playerStart: { x: 80, y: 380 },
-        portal: { x: 790, y: 172, width: 24, height: 48 },
-        dashOrbs: [],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 120, y: 390, width: 120, height: 20 },
-          { x: 300, y: 340, width: 140, height: 20 },
-          { x: 520, y: 280, width: 120, height: 20 },
-          { x: 700, y: 220, width: 120, height: 20 },
-          { x: 420, y: 220, width: 20, height: 180 },
-          { x: 640, y: 140, width: 20, height: 180 }
-        ],
-        spikes: [
-          { x: 260, y: 440, width: 40, height: 20 },
-          { x: 480, y: 440, width: 40, height: 20 },
-          { x: 720, y: 440, width: 40, height: 20 },
-          { x: 360, y: 320, width: 40, height: 20 },
-          { x: 580, y: 260, width: 40, height: 20 }
-        ]
-      },
-      {
-        name: "Level 2",
-        theme: "cyan",
-        playerStart: { x: 70, y: 410 },
-        portal: { x: 770, y: 92, width: 24, height: 48 },
-        dashOrbs: [],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 80, y: 420, width: 120, height: 20 },
-          { x: 240, y: 360, width: 100, height: 20 },
-          { x: 400, y: 300, width: 100, height: 20 },
-          { x: 560, y: 220, width: 100, height: 20 },
-          { x: 720, y: 140, width: 100, height: 20 },
-          { x: 340, y: 260, width: 20, height: 140 },
-          { x: 520, y: 180, width: 20, height: 140 }
-        ],
-        spikes: [
-          { x: 210, y: 440, width: 40, height: 20 },
-          { x: 360, y: 440, width: 40, height: 20 },
-          { x: 510, y: 440, width: 40, height: 20 },
-          { x: 660, y: 440, width: 40, height: 20 },
-          { x: 280, y: 340, width: 40, height: 20 },
-          { x: 440, y: 280, width: 40, height: 20 },
-          { x: 600, y: 200, width: 40, height: 20 }
-        ]
-      },
-      {
-        name: "Level 3",
-        theme: "cyan",
-        playerStart: { x: 60, y: 410 },
-        portal: { x: 760, y: 70, width: 24, height: 48 },
-        dashOrbs: [],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 60, y: 420, width: 100, height: 20 },
-          { x: 200, y: 360, width: 90, height: 20 },
-          { x: 350, y: 300, width: 90, height: 20 },
-          { x: 500, y: 240, width: 90, height: 20 },
-          { x: 660, y: 180, width: 90, height: 20 },
-          { x: 280, y: 260, width: 20, height: 160 },
-          { x: 580, y: 140, width: 20, height: 180 }
-        ],
-        spikes: [
-          { x: 170, y: 440, width: 40, height: 20 },
-          { x: 320, y: 440, width: 40, height: 20 },
-          { x: 470, y: 440, width: 40, height: 20 },
-          { x: 620, y: 440, width: 40, height: 20 },
-          { x: 240, y: 340, width: 40, height: 20 },
-          { x: 390, y: 280, width: 40, height: 20 },
-          { x: 540, y: 220, width: 40, height: 20 }
-        ]
-      },
-      {
-        name: "Level 4",
-        theme: "cyan",
-        playerStart: { x: 70, y: 400 },
-        portal: { x: 760, y: 90, width: 24, height: 48 },
-        dashOrbs: [],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 90, y: 400, width: 100, height: 20 },
-          { x: 250, y: 350, width: 90, height: 20 },
-          { x: 410, y: 290, width: 90, height: 20 },
-          { x: 570, y: 220, width: 90, height: 20 },
-          { x: 720, y: 140, width: 90, height: 20 },
-          { x: 180, y: 300, width: 20, height: 120 },
-          { x: 500, y: 170, width: 20, height: 140 }
-        ],
-        spikes: [
-          { x: 200, y: 440, width: 40, height: 20 },
-          { x: 360, y: 440, width: 40, height: 20 },
-          { x: 520, y: 440, width: 40, height: 20 },
-          { x: 680, y: 440, width: 40, height: 20 },
-          { x: 280, y: 330, width: 40, height: 20 },
-          { x: 440, y: 270, width: 40, height: 20 },
-          { x: 600, y: 200, width: 40, height: 20 }
-        ]
-      },
-      {
-        name: "Level 5",
-        theme: "cyan",
-        playerStart: { x: 60, y: 405 },
-        portal: { x: 780, y: 60, width: 24, height: 48 },
-        dashOrbs: [],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 70, y: 410, width: 90, height: 20 },
-          { x: 220, y: 350, width: 90, height: 20 },
-          { x: 370, y: 290, width: 90, height: 20 },
-          { x: 520, y: 220, width: 90, height: 20 },
-          { x: 690, y: 140, width: 100, height: 20 },
-          { x: 300, y: 250, width: 20, height: 140 },
-          { x: 610, y: 120, width: 20, height: 160 }
-        ],
-        spikes: [
-          { x: 180, y: 440, width: 40, height: 20 },
-          { x: 330, y: 440, width: 40, height: 20 },
-          { x: 480, y: 440, width: 40, height: 20 },
-          { x: 640, y: 440, width: 40, height: 20 },
-          { x: 250, y: 330, width: 40, height: 20 },
-          { x: 400, y: 270, width: 40, height: 20 },
-          { x: 550, y: 200, width: 40, height: 20 }
-        ]
-      },
-      {
-        name: "Level 6",
-        theme: "magenta",
-        playerStart: { x: 70, y: 382 },
-        portal: { x: 770, y: 150, width: 24, height: 48 },
-        dashOrbs: [{ x: 410, y: 250, radius: 12 }],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 80, y: 410, width: 100, height: 20 },
-          { x: 260, y: 340, width: 110, height: 20 },
-          { x: 500, y: 230, width: 110, height: 20 },
-          { x: 720, y: 200, width: 100, height: 20 },
-          { x: 360, y: 220, width: 20, height: 160 }
-        ],
-        spikes: [
-          { x: 200, y: 440, width: 60, height: 20 },
-          { x: 420, y: 440, width: 60, height: 20 },
-          { x: 640, y: 440, width: 60, height: 20 },
-          { x: 310, y: 320, width: 40, height: 20 }
-        ]
-      },
-      {
-        name: "Level 7",
-        theme: "magenta",
-        playerStart: { x: 70, y: 382 },
-        portal: { x: 760, y: 80, width: 24, height: 48 },
-        dashOrbs: [{ x: 300, y: 300, radius: 12 }, { x: 560, y: 170, radius: 12 }],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 90, y: 410, width: 90, height: 20 },
-          { x: 250, y: 330, width: 90, height: 20 },
-          { x: 430, y: 240, width: 90, height: 20 },
-          { x: 690, y: 130, width: 110, height: 20 },
-          { x: 180, y: 260, width: 20, height: 150 },
-          { x: 520, y: 140, width: 20, height: 140 }
-        ],
-        spikes: [
-          { x: 190, y: 440, width: 50, height: 20 },
-          { x: 370, y: 440, width: 50, height: 20 },
-          { x: 550, y: 440, width: 50, height: 20 },
-          { x: 470, y: 220, width: 40, height: 20 }
-        ]
-      },
-      {
-        name: "Level 8",
-        theme: "magenta",
-        playerStart: { x: 60, y: 382 },
-        portal: { x: 780, y: 60, width: 24, height: 48 },
-        dashOrbs: [{ x: 430, y: 260, radius: 12 }],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 80, y: 410, width: 100, height: 20 },
-          { x: 240, y: 350, width: 90, height: 20 },
-          { x: 400, y: 290, width: 90, height: 20 },
-          { x: 580, y: 210, width: 90, height: 20 },
-          { x: 730, y: 120, width: 90, height: 20 },
-          { x: 320, y: 250, width: 20, height: 130 },
-          { x: 520, y: 170, width: 20, height: 140 }
-        ],
-        spikes: [
-          { x: 190, y: 440, width: 50, height: 20 },
-          { x: 350, y: 440, width: 50, height: 20 },
-          { x: 510, y: 440, width: 50, height: 20 },
-          { x: 270, y: 330, width: 40, height: 20 },
-          { x: 610, y: 190, width: 40, height: 20 }
-        ]
-      },
-      {
-        name: "Level 9",
-        theme: "magenta",
-        playerStart: { x: 70, y: 382 },
-        portal: { x: 760, y: 70, width: 24, height: 48 },
-        dashOrbs: [{ x: 260, y: 320, radius: 12 }, { x: 580, y: 180, radius: 12 }],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 90, y: 410, width: 90, height: 20 },
-          { x: 220, y: 340, width: 90, height: 20 },
-          { x: 390, y: 260, width: 90, height: 20 },
-          { x: 580, y: 180, width: 90, height: 20 },
-          { x: 710, y: 120, width: 100, height: 20 },
-          { x: 320, y: 220, width: 20, height: 150 },
-          { x: 520, y: 140, width: 20, height: 120 }
-        ],
-        spikes: [
-          { x: 180, y: 440, width: 60, height: 20 },
-          { x: 340, y: 440, width: 60, height: 20 },
-          { x: 500, y: 440, width: 60, height: 20 },
-          { x: 280, y: 320, width: 40, height: 20 },
-          { x: 440, y: 240, width: 40, height: 20 }
-        ]
-      },
-      {
-        name: "Level 10",
-        theme: "magenta",
-        playerStart: { x: 70, y: 382 },
-        portal: { x: 790, y: 50, width: 24, height: 48 },
-        dashOrbs: [{ x: 300, y: 300, radius: 12 }, { x: 520, y: 180, radius: 12 }, { x: 700, y: 100, radius: 12 }],
-        platforms: [
-          { x: 0, y: 460, width: 900, height: 40 },
-          { x: 80, y: 410, width: 90, height: 20 },
-          { x: 240, y: 340, width: 80, height: 20 },
-          { x: 420, y: 250, width: 80, height: 20 },
-          { x: 620, y: 150, width: 80, height: 20 },
-          { x: 760, y: 100, width: 70, height: 20 },
-          { x: 170, y: 300, width: 20, height: 120 },
-          { x: 360, y: 210, width: 20, height: 140 },
-          { x: 560, y: 120, width: 20, height: 140 }
-        ],
-        spikes: [
-          { x: 170, y: 440, width: 60, height: 20 },
-          { x: 330, y: 440, width: 60, height: 20 },
-          { x: 490, y: 440, width: 60, height: 20 },
-          { x: 650, y: 440, width: 60, height: 20 },
-          { x: 260, y: 320, width: 40, height: 20 },
-          { x: 450, y: 230, width: 40, height: 20 },
-          { x: 650, y: 130, width: 40, height: 20 }
-        ]
-      }
-    ];
+  {
+    name: "Level 1",
+    theme: "cyan",
+    playerStart: { x: 80, y: 430 },
+    portal: { x: 975, y: 220, width: 24, height: 48 },
+    antiCheatPlatform: { x: 930, y: 258, width: 145, height: 18 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1035, yMax: 300 },
+    antiCheatRoofTrigger: { yMax: 55 },
+    dashOrbs: [],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 120, y: 440, width: 120, height: 20 },
+      { x: 300, y: 390, width: 140, height: 20 },
+      { x: 540, y: 330, width: 120, height: 20 },
+      { x: 760, y: 270, width: 120, height: 20 },
+      { x: 470, y: 270, width: 20, height: 180 },
+      { x: 735, y: 190, width: 20, height: 180 }
+    ],
+    spikes: [
+      { x: 260, y: 490, width: 40, height: 20 },
+      { x: 500, y: 490, width: 40, height: 20 },
+      { x: 760, y: 490, width: 40, height: 20 },
+      { x: 360, y: 370, width: 40, height: 20 },
+      { x: 600, y: 310, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 2",
+    theme: "cyan",
+    playerStart: { x: 70, y: 460 },
+    portal: { x: 980, y: 130, width: 24, height: 48 },
+    antiCheatPlatform: { x: 945, y: 175, width: 130, height: 18 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1040, yMax: 220 },
+    antiCheatRoofTrigger: { yMax: 55 },
+    dashOrbs: [],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 80, y: 470, width: 120, height: 20 },
+      { x: 260, y: 405, width: 100, height: 20 },
+      { x: 455, y: 340, width: 100, height: 20 },
+      { x: 655, y: 265, width: 100, height: 20 },
+      { x: 845, y: 180, width: 110, height: 20 },
+      { x: 355, y: 300, width: 20, height: 150 },
+      { x: 595, y: 215, width: 20, height: 150 }
+    ],
+    spikes: [
+      { x: 220, y: 490, width: 40, height: 20 },
+      { x: 400, y: 490, width: 40, height: 20 },
+      { x: 590, y: 490, width: 40, height: 20 },
+      { x: 780, y: 490, width: 40, height: 20 },
+      { x: 295, y: 385, width: 40, height: 20 },
+      { x: 490, y: 320, width: 40, height: 20 },
+      { x: 690, y: 245, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 3",
+    theme: "cyan",
+    playerStart: { x: 60, y: 460 },
+    portal: { x: 975, y: 95, width: 24, height: 48 },
+    antiCheatPlatform: { x: 955, y: 135, width: 120, height: 16 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1045, yMax: 165 },
+    antiCheatRoofTrigger: { yMax: 48 },
+    dashOrbs: [],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 60, y: 470, width: 100, height: 20 },
+      { x: 220, y: 405, width: 95, height: 20 },
+      { x: 410, y: 340, width: 95, height: 20 },
+      { x: 620, y: 275, width: 95, height: 20 },
+      { x: 830, y: 210, width: 95, height: 20 },
+      { x: 320, y: 305, width: 20, height: 165 },
+      { x: 720, y: 165, width: 20, height: 180 }
+    ],
+    spikes: [
+      { x: 185, y: 490, width: 40, height: 20 },
+      { x: 375, y: 490, width: 40, height: 20 },
+      { x: 565, y: 490, width: 40, height: 20 },
+      { x: 755, y: 490, width: 40, height: 20 },
+      { x: 260, y: 385, width: 40, height: 20 },
+      { x: 450, y: 320, width: 40, height: 20 },
+      { x: 660, y: 255, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 4",
+    theme: "cyan",
+    playerStart: { x: 70, y: 450 },
+    portal: { x: 975, y: 140, width: 24, height: 48 },
+    antiCheatPlatform: { x: 945, y: 180, width: 130, height: 18 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1040, yMax: 220 },
+    antiCheatRoofTrigger: { yMax: 55 },
+    dashOrbs: [],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 95, y: 450, width: 105, height: 20 },
+      { x: 280, y: 395, width: 95, height: 20 },
+      { x: 470, y: 330, width: 95, height: 20 },
+      { x: 675, y: 255, width: 95, height: 20 },
+      { x: 880, y: 180, width: 95, height: 20 },
+      { x: 200, y: 340, width: 20, height: 130 },
+      { x: 600, y: 205, width: 20, height: 145 }
+    ],
+    spikes: [
+      { x: 220, y: 490, width: 40, height: 20 },
+      { x: 410, y: 490, width: 40, height: 20 },
+      { x: 620, y: 490, width: 40, height: 20 },
+      { x: 820, y: 490, width: 40, height: 20 },
+      { x: 310, y: 375, width: 40, height: 20 },
+      { x: 500, y: 310, width: 40, height: 20 },
+      { x: 705, y: 235, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 5",
+    theme: "cyan",
+    playerStart: { x: 60, y: 455 },
+    portal: { x: 995, y: 105, width: 24, height: 48 },
+    antiCheatPlatform: { x: 960, y: 145, width: 120, height: 16 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1050, yMax: 180 },
+    antiCheatRoofTrigger: { yMax: 50 },
+    dashOrbs: [],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 70, y: 460, width: 95, height: 20 },
+      { x: 250, y: 395, width: 95, height: 20 },
+      { x: 430, y: 330, width: 95, height: 20 },
+      { x: 625, y: 255, width: 95, height: 20 },
+      { x: 855, y: 175, width: 110, height: 20 },
+      { x: 360, y: 290, width: 20, height: 150 },
+      { x: 730, y: 155, width: 20, height: 165 }
+    ],
+    spikes: [
+      { x: 195, y: 490, width: 40, height: 20 },
+      { x: 375, y: 490, width: 40, height: 20 },
+      { x: 565, y: 490, width: 40, height: 20 },
+      { x: 785, y: 490, width: 40, height: 20 },
+      { x: 280, y: 375, width: 40, height: 20 },
+      { x: 460, y: 310, width: 40, height: 20 },
+      { x: 655, y: 235, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 6",
+    theme: "magenta",
+    playerStart: { x: 70, y: 432 },
+    portal: { x: 980, y: 195, width: 24, height: 48 },
+    antiCheatPlatform: { x: 945, y: 235, width: 135, height: 18 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1040, yMax: 270 },
+    antiCheatRoofTrigger: { yMax: 55 },
+    dashOrbs: [{ x: 500, y: 300, radius: 12 }],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 80, y: 460, width: 100, height: 20 },
+      { x: 310, y: 385, width: 110, height: 20 },
+      { x: 600, y: 270, width: 110, height: 20 },
+      { x: 870, y: 240, width: 100, height: 20 },
+      { x: 450, y: 250, width: 20, height: 170 }
+    ],
+    spikes: [
+      { x: 220, y: 490, width: 60, height: 20 },
+      { x: 500, y: 490, width: 60, height: 20 },
+      { x: 790, y: 490, width: 60, height: 20 },
+      { x: 360, y: 365, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 7",
+    theme: "magenta",
+    playerStart: { x: 70, y: 432 },
+    portal: { x: 975, y: 125, width: 24, height: 48 },
+    antiCheatPlatform: { x: 950, y: 165, width: 130, height: 16 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1040, yMax: 210 },
+    antiCheatRoofTrigger: { yMax: 52 },
+    dashOrbs: [{ x: 360, y: 350, radius: 12 }, { x: 690, y: 215, radius: 12 }],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 90, y: 460, width: 90, height: 20 },
+      { x: 280, y: 380, width: 90, height: 20 },
+      { x: 520, y: 285, width: 90, height: 20 },
+      { x: 880, y: 175, width: 110, height: 20 },
+      { x: 210, y: 305, width: 20, height: 155 },
+      { x: 640, y: 185, width: 20, height: 145 }
+    ],
+    spikes: [
+      { x: 200, y: 490, width: 50, height: 20 },
+      { x: 430, y: 490, width: 50, height: 20 },
+      { x: 670, y: 490, width: 50, height: 20 },
+      { x: 560, y: 265, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 8",
+    theme: "magenta",
+    playerStart: { x: 60, y: 432 },
+    portal: { x: 995, y: 105, width: 24, height: 48 },
+    antiCheatPlatform: { x: 965, y: 145, width: 120, height: 16 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1055, yMax: 180 },
+    antiCheatRoofTrigger: { yMax: 52 },
+    dashOrbs: [{ x: 530, y: 310, radius: 12 }],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 80, y: 460, width: 100, height: 20 },
+      { x: 280, y: 395, width: 90, height: 20 },
+      { x: 500, y: 330, width: 90, height: 20 },
+      { x: 730, y: 245, width: 90, height: 20 },
+      { x: 930, y: 160, width: 90, height: 20 },
+      { x: 390, y: 290, width: 20, height: 140 },
+      { x: 650, y: 205, width: 20, height: 145 }
+    ],
+    spikes: [
+      { x: 210, y: 490, width: 50, height: 20 },
+      { x: 420, y: 490, width: 50, height: 20 },
+      { x: 650, y: 490, width: 50, height: 20 },
+      { x: 310, y: 375, width: 40, height: 20 },
+      { x: 760, y: 225, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 9",
+    theme: "magenta",
+    playerStart: { x: 70, y: 432 },
+    portal: { x: 980, y: 115, width: 24, height: 48 },
+    antiCheatPlatform: { x: 950, y: 155, width: 130, height: 16 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1045, yMax: 190 },
+    antiCheatRoofTrigger: { yMax: 50 },
+    dashOrbs: [{ x: 310, y: 365, radius: 12 }, { x: 730, y: 215, radius: 12 }],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 90, y: 460, width: 90, height: 20 },
+      { x: 260, y: 385, width: 90, height: 20 },
+      { x: 490, y: 300, width: 90, height: 20 },
+      { x: 730, y: 215, width: 90, height: 20 },
+      { x: 900, y: 160, width: 100, height: 20 },
+      { x: 390, y: 255, width: 20, height: 155 },
+      { x: 650, y: 175, width: 20, height: 130 }
+    ],
+    spikes: [
+      { x: 190, y: 490, width: 60, height: 20 },
+      { x: 410, y: 490, width: 60, height: 20 },
+      { x: 650, y: 490, width: 60, height: 20 },
+      { x: 320, y: 365, width: 40, height: 20 },
+      { x: 540, y: 280, width: 40, height: 20 }
+    ]
+  },
+
+  {
+    name: "Level 10",
+    theme: "magenta",
+    playerStart: { x: 70, y: 432 },
+    portal: { x: 1010, y: 95, width: 24, height: 48 },
+    antiCheatPlatform: { x: 975, y: 135, width: 115, height: 16 },
+    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+    antiCheatTrigger: { xMin: 1060, yMax: 170 },
+    antiCheatRoofTrigger: { yMax: 48 },
+    dashOrbs: [
+      { x: 350, y: 345, radius: 12 },
+      { x: 640, y: 225, radius: 12 },
+      { x: 870, y: 145, radius: 12 }
+    ],
+    platforms: [
+      { x: 0, y: 510, width: 1100, height: 40 },
+      { x: 80, y: 460, width: 90, height: 20 },
+      { x: 280, y: 385, width: 80, height: 20 },
+      { x: 530, y: 290, width: 80, height: 20 },
+      { x: 770, y: 190, width: 80, height: 20 },
+      { x: 950, y: 140, width: 70, height: 20 },
+      { x: 200, y: 345, width: 20, height: 125 },
+      { x: 450, y: 250, width: 20, height: 145 },
+      { x: 700, y: 160, width: 20, height: 145 }
+    ],
+    spikes: [
+      { x: 180, y: 490, width: 60, height: 20 },
+      { x: 390, y: 490, width: 60, height: 20 },
+      { x: 610, y: 490, width: 60, height: 20 },
+      { x: 830, y: 490, width: 60, height: 20 },
+      { x: 300, y: 365, width: 40, height: 20 },
+      { x: 560, y: 270, width: 40, height: 20 },
+      { x: 810, y: 170, width: 40, height: 20 }
+    ]
+  }
+];
 
     function drawDeathParticles() {
       for (const p of deathParticles) {
@@ -1194,61 +1236,66 @@ let antiCheatRoofTimer = 0;
     }
 
     function loadLevel(index) {
-      const level = levels[index];
+  const level = levels[index];
 
-      platforms = level.platforms;
-      spikes = level.spikes;
-      exitPortal = level.portal;
-      dashOrbs = (level.dashOrbs || []).map(orb => ({
-        ...orb,
-        collected: false
-      }));
-      currentTheme = level.theme || "cyan";
+  platforms = level.platforms;
+  spikes = level.spikes;
+  exitPortal = level.portal;
+  dashOrbs = (level.dashOrbs || []).map(orb => ({
+    ...orb,
+    collected: false
+  }));
+  currentTheme = level.theme || "cyan";
 
-      dashCharges = 0;
-      isDashing = false;
-      dashTimer = 0;
-      coyoteTimer = 0;
-      jumpBufferTimer = 0;
-      dashText.textContent = dashCharges;
+  antiCheatPlatform = level.antiCheatPlatform || null;
+  antiCheatRoof = level.antiCheatRoof || null;
+  antiCheatTrigger = level.antiCheatTrigger || null;
+  antiCheatRoofTrigger = level.antiCheatRoofTrigger || null;
 
-      player.x = level.playerStart.x;
-      player.y = level.playerStart.y;
-      player.vx = 0;
-      player.vy = 0;
-      player.facing = 1;
+  dashCharges = 0;
+  isDashing = false;
+  dashTimer = 0;
+  coyoteTimer = 0;
+  jumpBufferTimer = 0;
+  dashText.textContent = dashCharges;
 
-      onGround = false;
-      touchingWallLeft = false;
-      touchingWallRight = false;
-      wallSliding = false;
-      antiCheatPlatformActive = false;
-antiCheatPlatformTimer = 0;
-antiCheatMessageTimer = 0;
-antiCheatFlickerTimer = 0;
-antiCheatRoofActive = false;
-antiCheatRoofTimer = 0;
+  player.x = level.playerStart.x;
+  player.y = level.playerStart.y;
+  player.vx = 0;
+  player.vy = 0;
+  player.facing = 1;
 
-      levelEnding = false;
-      celebrationParticles = [];
-      orbPickupParticles = [];
-      dashTrailParticles = [];
-      deathParticles = [];
-      wallSlideParticles = [];
-      landingDustParticles = [];
-      deathResetTimer = 0;
+  onGround = false;
+  touchingWallLeft = false;
+  touchingWallRight = false;
+  wallSliding = false;
+  antiCheatPlatformActive = false;
+  antiCheatPlatformTimer = 0;
+  antiCheatRoofActive = false;
+  antiCheatRoofTimer = 0;
+  antiCheatMessageTimer = 0;
+  antiCheatFlickerTimer = 0;
 
-      mobileMoveX = 0;
-      resetStick();
+  levelEnding = false;
+  celebrationParticles = [];
+  orbPickupParticles = [];
+  dashTrailParticles = [];
+  deathParticles = [];
+  wallSlideParticles = [];
+  landingDustParticles = [];
+  deathResetTimer = 0;
 
-      levelStartTime = performance.now();
-      currentTime = 0;
-      timerText.textContent = "0.000s";
+  mobileMoveX = 0;
+  resetStick();
 
-      levelText.textContent = String(index + 1);
-      levelSelect.value = String(index);
-      statusText.textContent = "Ready";
-    }
+  levelStartTime = performance.now();
+  currentTime = 0;
+  timerText.textContent = "0.000s";
+
+  levelText.textContent = String(index + 1);
+  levelSelect.value = String(index);
+  statusText.textContent = "Ready";
+}
 
     function resetLevel() {
       loadLevel(currentLevel);
@@ -1361,11 +1408,11 @@ if (antiCheatRoofTimer > 0) {
 
       const activePlatforms = [...platforms];
 
-if (antiCheatPlatformActive) {
+if (antiCheatPlatformActive && antiCheatPlatform) {
   activePlatforms.push(antiCheatPlatform);
 }
 
-if (antiCheatRoofActive) {
+if (antiCheatRoofActive && antiCheatRoof) {
   activePlatforms.push(antiCheatRoof);
 }
 
@@ -1422,8 +1469,9 @@ if (antiCheatRoofActive) {
       }
 
       if (
+  antiCheatRoofTrigger &&
   !antiCheatRoofActive &&
-  player.y < 70 &&
+  player.y < antiCheatRoofTrigger.yMax &&
   !onGround
 ) {
   antiCheatRoofActive = true;
@@ -1433,17 +1481,18 @@ if (antiCheatRoofActive) {
   statusText.textContent = "No cheating";
 }
 
-      if (
+     if (
+  antiCheatTrigger &&
   !antiCheatPlatformActive &&
-  player.x + player.width > 860 &&
-  player.y < 260 &&
+  player.x + player.width > antiCheatTrigger.xMin &&
+  player.y < antiCheatTrigger.yMax &&
   !onGround
 ) {
   antiCheatPlatformActive = true;
-antiCheatPlatformTimer = 180;
-antiCheatMessageTimer = 90;
-antiCheatFlickerTimer = 28;
-statusText.textContent = "No cheating";
+  antiCheatPlatformTimer = 180;
+  antiCheatMessageTimer = 90;
+  antiCheatFlickerTimer = 28;
+  statusText.textContent = "No cheating";
 }
 
       if (onGround) {
@@ -1732,7 +1781,7 @@ statusText.textContent = "No cheating";
     ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
   }
 
-  if (antiCheatPlatformActive) {
+  if (antiCheatPlatformActive && antiCheatPlatform) {
     const flickerPhase = antiCheatFlickerTimer > 0
       ? Math.floor(performance.now() / 40) % 2 === 0
       : true;
@@ -1770,7 +1819,7 @@ statusText.textContent = "No cheating";
     }
   }
 
-  if (antiCheatRoofActive) {
+  if (antiCheatRoofActive && antiCheatRoof) {
     const flickerPhase = antiCheatFlickerTimer > 0
       ? Math.floor(performance.now() / 40) % 2 === 0
       : true;
