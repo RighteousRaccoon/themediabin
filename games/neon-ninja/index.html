@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Neon Ninja - The Media Bin</title>
   <style>
     * { box-sizing: border-box; }
@@ -18,6 +18,7 @@
       justify-content: center;
       padding: 30px;
       touch-action: manipulation;
+      overflow-x: hidden;
     }
 
     .wrapper {
@@ -36,6 +37,7 @@
     }
 
     .game-box {
+      position: relative;
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid #1e293b;
       border-radius: 20px;
@@ -91,29 +93,68 @@
 
     .mobile-controls {
       display: none;
-      margin-top: 18px;
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
     }
 
-    .mobile-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+    .stick-zone {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      width: 150px;
+      height: 150px;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    .stick-base {
+      position: absolute;
+      left: 15px;
+      top: 15px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.22);
+    }
+
+    .stick-knob {
+      position: absolute;
+      left: 45px;
+      top: 45px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(37, 99, 235, 0.9);
+      border: 1px solid rgba(191, 219, 254, 0.65);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.22);
+      transform: translate(0, 0);
+    }
+
+    .action-zone {
+      position: absolute;
+      right: 14px;
+      bottom: 14px;
+      display: flex;
       gap: 12px;
+      align-items: flex-end;
+      pointer-events: auto;
     }
 
     .mobile-btn {
       border: none;
-      border-radius: 16px;
-      min-height: 68px;
-      font-size: 1.5rem;
+      border-radius: 18px;
+      width: 78px;
+      height: 78px;
+      font-size: 1.4rem;
       font-weight: 700;
       color: white;
-      background: #1e293b;
       border: 1px solid #334155;
       box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
       touch-action: manipulation;
+      pointer-events: auto;
     }
 
     .mobile-btn:active,
@@ -123,11 +164,17 @@
     }
 
     .mobile-btn-jump {
-      background: #2563eb;
+      background: rgba(37, 99, 235, 0.95);
     }
 
     .mobile-btn-dash {
-      background: #7c3aed;
+      background: rgba(124, 58, 237, 0.95);
+    }
+
+    .fullscreen-wrap {
+      display: none;
+      margin-top: 14px;
+      justify-content: center;
     }
 
     .controls {
@@ -147,20 +194,28 @@
     }
 
     @media (max-width: 900px) {
-      .mobile-controls {
-        display: block;
-      }
-
       body {
-        padding: 14px;
+        padding: 10px;
       }
 
       .game-box {
-        padding: 16px;
+        padding: 12px;
       }
 
       .hud {
         justify-content: center;
+      }
+
+      .mobile-controls {
+        display: block;
+      }
+
+      .fullscreen-wrap {
+        display: flex;
+      }
+
+      .controls {
+        font-size: 0.95rem;
       }
     }
   </style>
@@ -170,7 +225,7 @@
     <h1>Neon Ninja</h1>
     <p>Precision platformer prototype.</p>
 
-    <div class="game-box">
+    <div class="game-box" id="gameBox">
       <div class="hud">
         <div class="scoreboard">Level: <span id="levelText">1</span></div>
         <div class="scoreboard">Status: <span id="statusText">Ready</span></div>
@@ -200,12 +255,19 @@
       <canvas id="game" width="900" height="500"></canvas>
 
       <div class="mobile-controls" id="mobileControls">
-        <div class="mobile-row">
-          <button class="mobile-btn" id="leftBtn" type="button">◀</button>
-          <button class="mobile-btn" id="rightBtn" type="button">▶</button>
+        <div class="stick-zone" id="stickZone">
+          <div class="stick-base"></div>
+          <div class="stick-knob" id="stickKnob"></div>
+        </div>
+
+        <div class="action-zone">
           <button class="mobile-btn mobile-btn-jump" id="jumpBtn" type="button">▲</button>
           <button class="mobile-btn mobile-btn-dash" id="dashBtn" type="button">◆</button>
         </div>
+      </div>
+
+      <div class="fullscreen-wrap">
+        <button class="button" id="fullscreenButton" type="button">Fullscreen</button>
       </div>
     </div>
 
@@ -226,6 +288,7 @@
     const ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = false;
 
+    const gameBox = document.getElementById("gameBox");
     const statusText = document.getElementById("statusText");
     const resetButton = document.getElementById("resetButton");
     const timerText = document.getElementById("timerText");
@@ -235,10 +298,11 @@
     const dashText = document.getElementById("dashText");
     const levelSelect = document.getElementById("levelSelect");
     const goLevelButton = document.getElementById("goLevelButton");
-    const leftBtn = document.getElementById("leftBtn");
-    const rightBtn = document.getElementById("rightBtn");
     const jumpBtn = document.getElementById("jumpBtn");
     const dashBtn = document.getElementById("dashBtn");
+    const stickZone = document.getElementById("stickZone");
+    const stickKnob = document.getElementById("stickKnob");
+    const fullscreenButton = document.getElementById("fullscreenButton");
 
     const ninjaSprite = new Image();
     ninjaSprite.src = "/games/assets/ninja.png";
@@ -317,7 +381,28 @@
     let spikes = [];
     let exitPortal = {};
 
+    let mobileMoveX = 0;
+    let stickActive = false;
+    const stickRadius = 60;
+    const knobRadius = 30;
+
     bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
+
+    function isMobileViewport() {
+      return window.matchMedia("(max-width: 900px)").matches;
+    }
+
+    function getMoveAcceleration() {
+      return isMobileViewport() ? 0.38 : moveSpeed;
+    }
+
+    function getMoveMaxSpeed() {
+      return isMobileViewport() ? 2.8 : maxSpeed;
+    }
+
+    function getGroundFriction() {
+      return isMobileViewport() ? 0.72 : friction;
+    }
 
     function getAudioContext() {
       if (!audioContext) {
@@ -648,6 +733,32 @@
       }
     ];
 
+    function drawDeathParticles() {
+      for (const p of deathParticles) {
+        const alpha = p.life / p.maxLife;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = p.color;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+        ctx.restore();
+      }
+    }
+
+    function updateDeathParticles() {
+      for (const p of deathParticles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.96;
+        p.vy *= 0.96;
+        p.life -= 1;
+      }
+
+      deathParticles = deathParticles.filter(p => p.life > 0);
+    }
+
     function spawnCelebration(x, y) {
       const colors = ["#a855f7", "#c084fc", "#e9d5ff", "#22d3ee"];
 
@@ -687,32 +798,6 @@
           color: colors[Math.floor(Math.random() * colors.length)]
         });
       }
-    }
-
-    function drawDeathParticles() {
-      for (const p of deathParticles) {
-        const alpha = p.life / p.maxLife;
-
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = p.color;
-        ctx.fillStyle = p.color;
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-        ctx.restore();
-      }
-    }
-
-    function updateDeathParticles() {
-      for (const p of deathParticles) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.96;
-        p.vy *= 0.96;
-        p.life -= 1;
-      }
-
-      deathParticles = deathParticles.filter(p => p.life > 0);
     }
 
     function spawnOrbPickupParticles(x, y) {
@@ -848,6 +933,9 @@
       deathParticles = [];
       deathResetTimer = 0;
 
+      mobileMoveX = 0;
+      resetStick();
+
       levelStartTime = performance.now();
       currentTime = 0;
       timerText.textContent = "0.000s";
@@ -911,20 +999,30 @@
         );
       }
 
+      const moveAccel = getMoveAcceleration();
+      const moveCap = getMoveMaxSpeed();
+      const moveFriction = getGroundFriction();
+
       if (!isDashing) {
         if (keys.left) {
-          player.vx -= moveSpeed;
+          player.vx -= moveAccel;
           player.facing = -1;
         }
         if (keys.right) {
-          player.vx += moveSpeed;
+          player.vx += moveAccel;
           player.facing = 1;
+        }
+
+        if (Math.abs(mobileMoveX) > 0.05) {
+          player.vx += mobileMoveX * moveAccel;
+          if (mobileMoveX < -0.1) player.facing = -1;
+          if (mobileMoveX > 0.1) player.facing = 1;
         }
       }
 
       if (!isDashing) {
-        if (player.vx > maxSpeed) player.vx = maxSpeed;
-        if (player.vx < -maxSpeed) player.vx = -maxSpeed;
+        if (player.vx > moveCap) player.vx = moveCap;
+        if (player.vx < -moveCap) player.vx = -moveCap;
       }
 
       if (!isDashing) {
@@ -1064,8 +1162,8 @@
         statusText.textContent = "Ready";
       }
 
-      if (!keys.left && !keys.right && onGround) {
-        player.vx *= friction;
+      if (!keys.left && !keys.right && Math.abs(mobileMoveX) < 0.05 && onGround) {
+        player.vx *= moveFriction;
         if (Math.abs(player.vx) < 0.05) player.vx = 0;
       }
 
@@ -1422,6 +1520,37 @@
       }
     }
 
+    function resetStick() {
+      stickActive = false;
+      mobileMoveX = 0;
+      if (stickKnob) {
+        stickKnob.style.transform = "translate(0px, 0px)";
+      }
+    }
+
+    function updateStickFromEvent(clientX, clientY) {
+      const rect = stickZone.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
+
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const maxDistance = stickRadius - knobRadius;
+
+      if (distance > maxDistance && distance > 0) {
+        const scale = maxDistance / distance;
+        dx *= scale;
+        dy *= scale;
+      }
+
+      mobileMoveX = dx / maxDistance;
+      if (Math.abs(mobileMoveX) < 0.08) mobileMoveX = 0;
+
+      stickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+    }
+
     window.addEventListener("keydown", (event) => {
       const key = event.key.toLowerCase();
 
@@ -1496,49 +1625,45 @@
       levelSelect.blur();
     });
 
-    function bindHoldButton(button, onPress, onRelease) {
-      if (!button) return;
-
-      const press = (event) => {
-        event.preventDefault();
-        button.classList.add("active");
-        onPress();
-      };
-
-      const release = (event) => {
-        event.preventDefault();
-        button.classList.remove("active");
-        onRelease();
-      };
-
-      button.addEventListener("touchstart", press, { passive: false });
-      button.addEventListener("touchend", release, { passive: false });
-      button.addEventListener("touchcancel", release, { passive: false });
-
-      button.addEventListener("mousedown", press);
-      button.addEventListener("mouseup", release);
-      button.addEventListener("mouseleave", release);
+    if (fullscreenButton) {
+      fullscreenButton.addEventListener("click", async () => {
+        try {
+          if (!document.fullscreenElement) {
+            await gameBox.requestFullscreen();
+          } else {
+            await document.exitFullscreen();
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      });
     }
 
-    bindHoldButton(
-      leftBtn,
-      () => {
-        keys.left = true;
-      },
-      () => {
-        keys.left = false;
-      }
-    );
+    if (stickZone) {
+      stickZone.addEventListener("touchstart", (event) => {
+        event.preventDefault();
+        const touch = event.changedTouches[0];
+        stickActive = true;
+        updateStickFromEvent(touch.clientX, touch.clientY);
+      }, { passive: false });
 
-    bindHoldButton(
-      rightBtn,
-      () => {
-        keys.right = true;
-      },
-      () => {
-        keys.right = false;
-      }
-    );
+      stickZone.addEventListener("touchmove", (event) => {
+        if (!stickActive) return;
+        event.preventDefault();
+        const touch = event.changedTouches[0];
+        updateStickFromEvent(touch.clientX, touch.clientY);
+      }, { passive: false });
+
+      stickZone.addEventListener("touchend", (event) => {
+        event.preventDefault();
+        resetStick();
+      }, { passive: false });
+
+      stickZone.addEventListener("touchcancel", (event) => {
+        event.preventDefault();
+        resetStick();
+      }, { passive: false });
+    }
 
     if (jumpBtn) {
       const jumpPress = (event) => {
@@ -1582,13 +1707,9 @@
       dashBtn.addEventListener("mouseleave", dashRelease);
     }
 
-    canvas.addEventListener(
-      "touchstart",
-      (event) => {
-        event.preventDefault();
-      },
-      { passive: false }
-    );
+    canvas.addEventListener("touchstart", (event) => {
+      event.preventDefault();
+    }, { passive: false });
 
     loadLevel(currentLevel);
     gameLoop();
