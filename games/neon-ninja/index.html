@@ -582,15 +582,15 @@ const knobRadius = 23;
     }
 
     function getMoveAcceleration() {
-  return isMobileViewport() ? 0.26 : 0.8;
+  return isMobileViewport() ? 0.26 : 0.6;
 }
 
 function getMoveMaxSpeed() {
-  return isMobileViewport() ? 2.15 : 4.2;
+  return isMobileViewport() ? 2.15 : 3.3;
 }
 
 function getGroundFriction() {
-  return isMobileViewport() ? 0.78 : 0.8;
+  return isMobileViewport() ? 0.78 : 0.76;
 }
 
     function getAudioContext() {
@@ -1846,18 +1846,21 @@ function startGameLoop() {
 }
 
     function tryDash() {
-      if (dashCharges > 0 && !onGround && !isDashing) {
-        dashCharges = 0;
-        dashText.textContent = dashCharges;
-        isDashing = true;
-        dashTimer = 14;
-        player.vy = 0;
-        player.vx = player.facing * 15;
-        statusText.textContent = "Dash!";
-        playDashSound();
-        addScreenShake(4);
-      }
-    }
+  if (dashCharges > 0 && !onGround && !isDashing) {
+    const dashSpeed = isMobileViewport() ? 15 : 12;
+    const dashFrames = isMobileViewport() ? 14 : 11;
+
+    dashCharges = 0;
+    dashText.textContent = dashCharges;
+    isDashing = true;
+    dashTimer = dashFrames;
+    player.vy = 0;
+    player.vx = player.facing * dashSpeed;
+    statusText.textContent = "Dash!";
+    playDashSound();
+    addScreenShake(4);
+  }
+}
 
     function resetStick() {
       stickActive = false;
