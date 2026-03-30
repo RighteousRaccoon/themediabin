@@ -782,8 +782,10 @@ function updatePlayer() {
   }
 
   // Clamp horizontal speed
+  if (!isDashing) {
   if (player.vx > maxSpeed) player.vx = maxSpeed;
   if (player.vx < -maxSpeed) player.vx = -maxSpeed;
+}
 
   // Apply gravity unless actively dashing
   if (!isDashing) {
@@ -865,19 +867,21 @@ function updatePlayer() {
 
   // Dash orb collection
   for (const orb of dashOrbs) {
-    if (orb.collected) continue;
+  if (orb.collected) continue;
 
-    const dx = player.x + player.width / 2 - orb.x;
-    const dy = player.y + player.height / 2 - orb.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+  const dx = player.x + player.width / 2 - orb.x;
+  const dy = player.y + player.height / 2 - orb.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist < orb.radius + 10) {
-      orb.collected = true;
-      dashCharges = 1;
-      dashText.textContent = dashCharges;
-      statusText.textContent = "Dash charged!";
-    }
+  if (dist < orb.radius + 10) {
+    orb.collected = true;
+    dashCharges = 1;
+    dashText.textContent = dashCharges;
+    statusText.textContent = "Dash charged!";
+    spawnOrbPickupParticles(orb.x, orb.y);
+    playOrbPickupSound();
   }
+}
 
   // Detect wall contact with tiny side probes
   const probe = 2;
@@ -1235,14 +1239,14 @@ function drawExitPortal() {
   if (key === "d" || event.key === "ArrowRight") keys.right = true;
 
   if ((key === "x" || event.key === "Shift") && dashCharges > 0 && !onGround && !isDashing) {
-  dashCharges = 0;
-  dashText.textContent = dashCharges;
-  isDashing = true;
-  dashTimer = 10;
-  player.vy = 0;
-  player.vx = player.facing * 10;
-  statusText.textContent = "Dash!";
-  playDashSound();
+ dashCharges = 0;
+dashText.textContent = dashCharges;
+isDashing = true;
+dashTimer = 14;
+player.vy = 0;
+player.vx = player.facing * 15;
+statusText.textContent = "Dash!";
+playDashSound();
 }
 
   if (key === "w" || key === " " || event.key === "ArrowUp") {
