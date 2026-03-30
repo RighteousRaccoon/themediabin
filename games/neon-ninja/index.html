@@ -1779,25 +1779,25 @@ drawDeathParticles();
     }
 
     function gameLoop() {
-      updateTimer();
-      updatePlayer();
-      updateCelebration();
-      updateOrbPickupParticles();
-      updateDashTrailParticles();
-      updateDeathParticles();
-      updateWallSlideParticles();
-      updateLandingDustParticles();
+  updateTimer();
+  updatePlayer();
+  updateCelebration();
+  updateOrbPickupParticles();
+  updateDashTrailParticles();
+  updateDeathParticles();
+  updateWallSlideParticles();
+  updateLandingDustParticles();
 
-      if (deathResetTimer > 0) {
-        deathResetTimer--;
-        if (deathResetTimer <= 0) {
-          resetLevel();
-        }
-      }
-
-      draw();
-      requestAnimationFrame(gameLoop);
+  if (deathResetTimer > 0) {
+    deathResetTimer--;
+    if (deathResetTimer <= 0) {
+      resetLevel();
     }
+  }
+
+  draw();
+  requestAnimationFrame(gameLoop);
+}
 
     function queueJump() {
   jumpBufferTimer = JUMP_BUFFER_FRAMES;
