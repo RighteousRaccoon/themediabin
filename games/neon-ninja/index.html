@@ -1539,60 +1539,68 @@ if (antiCheatRoofActive && antiCheatRoof) {
       }
 
       const probe = 2;
-      for (const platform of activePlatforms) {
-        if (
-          rectOverlap(
-            player.x - probe,
-            player.y + 2,
-            probe,
-            player.height - 4,
-            platform.x,
-            platform.y,
-            platform.width,
-            platform.height
-          )
-        ) {
-          touchingWallLeft = true;
-        }
+for (const platform of activePlatforms) {
+  // ignore floor-like contact near the player's feet
+  const probeY = player.y + 4;
+  const probeH = Math.max(8, player.height - 10);
 
-        if (
-          rectOverlap(
-            player.x + player.width,
-            player.y + 2,
-            probe,
-            player.height - 4,
-            platform.x,
-            platform.y,
-            platform.width,
-            platform.height
-          )
-        ) {
-          touchingWallRight = true;
-        }
-      }
+  if (
+    rectOverlap(
+      player.x - probe,
+      probeY,
+      probe,
+      probeH,
+      platform.x,
+      platform.y,
+      platform.width,
+      platform.height
+    )
+  ) {
+    touchingWallLeft = true;
+  }
+
+  if (
+    rectOverlap(
+      player.x + player.width,
+      probeY,
+      probe,
+      probeH,
+      platform.x,
+      platform.y,
+      platform.width,
+      platform.height
+    )
+  ) {
+    touchingWallRight = true;
+  }
+}
 
       if (player.x <= 0) touchingWallLeft = true;
       if (player.x + player.width >= canvas.width) touchingWallRight = true;
 
-      if (
+  const pressingIntoLeftWall = touchingWallLeft && (keys.left || mobileMoveX < -0.2);
+const pressingIntoRightWall = touchingWallRight && (keys.right || mobileMoveX > 0.2);
+
+if (
   !onGround &&
   player.vy > 0 &&
-  (touchingWallLeft || touchingWallRight) &&
-  Math.abs(player.vx) > 0.3 // 🔥 important fix
+  (pressingIntoLeftWall || pressingIntoRightWall)
 ) {
-        wallSliding = true;
-        if (player.vy > 2) player.vy = 2;
+  wallSliding = true;
+  if (player.vy > 2) player.vy = 2;
 
-        if (Math.random() < 0.55) {
-          spawnWallSlideParticle();
-        }
+  if (Math.random() < 0.55) {
+    spawnWallSlideParticle();
+  }
 
-        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Wall sliding";
-      } else if (!onGround) {
-        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Jumping";
-      } else {
-        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Ready";
-      }
+  statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Wall sliding";
+} else if (!onGround) {
+  wallSliding = false;
+  statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Jumping";
+} else {
+  wallSliding = false;
+  statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Ready";
+}
 
       if (!keys.left && !keys.right && Math.abs(mobileMoveX) < 0.05 && onGround) {
         player.vx *= moveFriction;
