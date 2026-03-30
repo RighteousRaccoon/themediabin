@@ -265,11 +265,50 @@
       font-weight: 700;
     }
 
-  @media (orientation: portrait) {
+ @media (orientation: portrait) {
+  .play-area:fullscreen {
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
   .play-area:fullscreen canvas {
     width: 100vw;
     height: auto;
-    max-height: 58vh;
+    max-height: 56vh;
+  }
+
+  .play-area:fullscreen .stick-zone {
+    left: 10px;
+    bottom: 10px;
+    width: 100px;
+    height: 100px;
+  }
+
+  .play-area:fullscreen .stick-base {
+    width: 80px;
+    height: 80px;
+    left: 10px;
+    top: 10px;
+  }
+
+  .play-area:fullscreen .stick-knob {
+    width: 36px;
+    height: 36px;
+    left: 32px;
+    top: 32px;
+  }
+
+  .play-area:fullscreen .action-zone {
+    right: 10px;
+    bottom: 10px;
+    gap: 8px;
+  }
+
+  .play-area:fullscreen .mobile-btn {
+    width: 54px;
+    height: 54px;
+    font-size: 0.95rem;
   }
 }
 
