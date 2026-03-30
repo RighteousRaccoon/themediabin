@@ -514,11 +514,12 @@
       processedNinjaSprite = off;
     };
 
-    const gravity = 0.6;
+    const gravity = 0.42;
     const moveSpeed = 0.8;
     const maxSpeed = 4.2;
+    const maxFallSpeed = 7.2;
     const friction = 0.8;
-    const jumpPower = -11;
+    const jumpPower = -9.6;
     const COYOTE_FRAMES = 8;
 const JUMP_BUFFER_FRAMES = 8;
 
@@ -1324,8 +1325,9 @@ deathResetTimer = 0;
       }
 
       if (!isDashing) {
-        player.vy += gravity;
-      }
+  player.vy += gravity;
+  if (player.vy > maxFallSpeed) player.vy = maxFallSpeed;
+}
 
       const prevX = player.x;
       const prevY = player.y;
