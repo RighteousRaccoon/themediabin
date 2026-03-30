@@ -1939,51 +1939,59 @@ if (antiCheatRoofActive && antiCheatRoof) {
 }
 
     function drawPlayer() {
-      const sprite = processedNinjaSprite || ninjaSprite;
-      const frameWidth = sprite.width / 4;
-      const frameHeight = sprite.height;
+  const sprite = processedNinjaSprite || ninjaSprite;
 
-      let frame = 0;
+  const drawWidth = 52;
+  const drawHeight = 72;
 
-      if (!onGround || wallSliding) {
-        frame = 3;
-      } else if (Math.abs(player.vx) > 0.2) {
-        frame = Math.floor(performance.now() / 120) % 2 + 1;
-      }
+  ctx.save();
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 6);
 
-      const cropX = frame * frameWidth + frameWidth * 0.10;
-      const cropY = frameHeight * 0.04;
-      const cropW = frameWidth * 0.80;
-      const cropH = frameHeight * 0.92;
+  if (player.facing < 0) {
+    ctx.scale(-1, 1);
+  }
 
-      const drawWidth = 52;
-      const drawHeight = 72;
-
-      ctx.save();
-ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 6);
-
-if (player.facing < 0) {
-  ctx.scale(-1, 1);
-}
-
+  // Draw scarf first (always safe)
+  ctx.save();
+ctx.translate(0, 2); // slight offset
 drawScarf();
-
-if (processedNinjaSprite || (sprite.complete && sprite.naturalWidth > 0)) {
-  ctx.drawImage(
-    sprite,
-    cropX, cropY,
-    cropW, cropH,
-    -drawWidth / 2, -drawHeight / 2,
-    drawWidth, drawHeight
-  );
-} else {
-  ctx.fillStyle = "#1f2937";
-  ctx.fillRect(-12, -14, 24, 28);
-  ctx.fillStyle = "#22d3ee";
-  ctx.fillRect(-8, -4, 16, 4);
-}
-
 ctx.restore();
+
+  // Only draw sprite if it's actually loaded
+  if (sprite && sprite.width > 0) {
+    const frameWidth = sprite.width / 4;
+    const frameHeight = sprite.height;
+
+    let frame = 0;
+
+    if (!onGround || wallSliding) {
+      frame = 3;
+    } else if (Math.abs(player.vx) > 0.2) {
+      frame = Math.floor(performance.now() / 120) % 2 + 1;
+    }
+
+    const cropX = frame * frameWidth + frameWidth * 0.10;
+    const cropY = frameHeight * 0.04;
+    const cropW = frameWidth * 0.80;
+    const cropH = frameHeight * 0.92;
+
+    ctx.drawImage(
+      sprite,
+      cropX, cropY,
+      cropW, cropH,
+      -drawWidth / 2, -drawHeight / 2,
+      drawWidth, drawHeight
+    );
+  } else {
+    // fallback placeholder
+    ctx.fillStyle = "#1f2937";
+    ctx.fillRect(-12, -14, 24, 28);
+    ctx.fillStyle = "#22d3ee";
+    ctx.fillRect(-8, -4, 16, 4);
+  }
+
+  ctx.restore();
+}
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
