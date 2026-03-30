@@ -562,6 +562,8 @@ const JUMP_BUFFER_FRAMES = 8;
 let jumpBufferTimer = 0;
 let wallSlideParticles = [];
 let landingDustParticles = [];
+let gameLoopStarted = false;
+let animationFrameId = null;
 
     let currentLevel = 0;
     let platforms = [];
@@ -1778,7 +1780,7 @@ drawDeathParticles();
       ctx.restore();
     }
 
-    function gameLoop() {
+   function gameLoop() {
   updateTimer();
   updatePlayer();
   updateCelebration();
@@ -1796,7 +1798,13 @@ drawDeathParticles();
   }
 
   draw();
-  requestAnimationFrame(gameLoop);
+  animationFrameId = requestAnimationFrame(gameLoop);
+}
+
+function startGameLoop() {
+  if (gameLoopStarted) return;
+  gameLoopStarted = true;
+  animationFrameId = requestAnimationFrame(gameLoop);
 }
 
     function queueJump() {
@@ -2045,7 +2053,7 @@ drawDeathParticles();
     }, { passive: false });
 
     loadLevel(currentLevel);
-    gameLoop();
+startGameLoop();
   </script>
 </body>
 </html>
