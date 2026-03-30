@@ -1889,6 +1889,55 @@ if (antiCheatRoofActive && antiCheatRoof) {
       }
     }
 
+    function drawScarf() {
+  const baseX = player.facing < 0 ? 14 : -14;
+  const baseY = -18;
+
+  const t = performance.now() * 0.012;
+
+  let flutter = Math.sin(t) * 3.5;
+  let tailSwing = Math.cos(t * 0.9) * 2;
+
+  if (Math.abs(player.vx) > 0.2) {
+    flutter += Math.sin(t * 1.8) * 1.5;
+    tailSwing += player.facing < 0 ? -1.5 : 1.5;
+  }
+
+  if (!onGround) {
+    flutter += 1.5;
+    tailSwing += Math.sin(t * 1.6) * 2;
+  }
+
+  const dir = player.facing < 0 ? 1 : -1;
+
+  ctx.save();
+  ctx.shadowBlur = 6;
+  ctx.shadowColor = "#fb7185";
+
+  ctx.fillStyle = "#fb7185";
+
+  ctx.beginPath();
+  ctx.moveTo(baseX, baseY);
+  ctx.lineTo(baseX + dir * 8, baseY + 3 + flutter * 0.2);
+  ctx.lineTo(baseX + dir * 18, baseY + 1 + flutter);
+  ctx.lineTo(baseX + dir * 28, baseY + 6 + tailSwing);
+  ctx.lineTo(baseX + dir * 18, baseY + 9 + flutter * 0.6);
+  ctx.lineTo(baseX + dir * 7, baseY + 7);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#fda4af";
+  ctx.beginPath();
+  ctx.moveTo(baseX + dir * 5, baseY + 2);
+  ctx.lineTo(baseX + dir * 13, baseY + 4 + flutter * 0.25);
+  ctx.lineTo(baseX + dir * 22, baseY + 6 + tailSwing * 0.7);
+  ctx.lineTo(baseX + dir * 14, baseY + 7 + flutter * 0.4);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
     function drawPlayer() {
       const sprite = processedNinjaSprite || ninjaSprite;
       const frameWidth = sprite.width / 4;
@@ -1911,29 +1960,30 @@ if (antiCheatRoofActive && antiCheatRoof) {
       const drawHeight = 72;
 
       ctx.save();
-      ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 6);
+ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 6);
 
-      if (player.facing < 0) {
-        ctx.scale(-1, 1);
-      }
+if (player.facing < 0) {
+  ctx.scale(-1, 1);
+}
 
-      if (processedNinjaSprite || (sprite.complete && sprite.naturalWidth > 0)) {
-        ctx.drawImage(
-          sprite,
-          cropX, cropY,
-          cropW, cropH,
-          -drawWidth / 2, -drawHeight / 2,
-          drawWidth, drawHeight
-        );
-      } else {
-        ctx.fillStyle = "#1f2937";
-        ctx.fillRect(-12, -14, 24, 28);
-        ctx.fillStyle = "#22d3ee";
-        ctx.fillRect(-8, -4, 16, 4);
-      }
+drawScarf();
 
-      ctx.restore();
-    }
+if (processedNinjaSprite || (sprite.complete && sprite.naturalWidth > 0)) {
+  ctx.drawImage(
+    sprite,
+    cropX, cropY,
+    cropW, cropH,
+    -drawWidth / 2, -drawHeight / 2,
+    drawWidth, drawHeight
+  );
+} else {
+  ctx.fillStyle = "#1f2937";
+  ctx.fillRect(-12, -14, 24, 28);
+  ctx.fillStyle = "#22d3ee";
+  ctx.fillRect(-8, -4, 16, 4);
+}
+
+ctx.restore();
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
