@@ -1889,54 +1889,6 @@ if (antiCheatRoofActive && antiCheatRoof) {
       }
     }
 
-    function drawScarf() {
-  const baseX = player.facing < 0 ? 5 : -5;
-  const baseY = -9;
-
-  const t = performance.now() * 0.012;
-
-  let flutter = Math.sin(t) * 1.8;
-  let tailSwing = Math.cos(t * 0.9) * 1.2;
-
-  if (Math.abs(player.vx) > 0.2) {
-    flutter += Math.sin(t * 1.8) * 1.0;
-    tailSwing += player.facing < 0 ? -1.0 : 1.0;
-  }
-
-  if (!onGround) {
-    flutter += 1.0;
-    tailSwing += Math.sin(t * 1.6) * 1.2;
-  }
-
-  const dir = player.facing < 0 ? 1 : -1;
-
-  ctx.save();
-  ctx.shadowBlur = 5;
-  ctx.shadowColor = "#fb7185";
-
-  ctx.fillStyle = "#fb7185";
-  ctx.beginPath();
-  ctx.moveTo(baseX, baseY);
-  ctx.lineTo(baseX + dir * 4, baseY + 2);
-  ctx.lineTo(baseX + dir * 9, baseY + 1 + flutter * 0.35);
-  ctx.lineTo(baseX + dir * 14, baseY + 4 + tailSwing);
-  ctx.lineTo(baseX + dir * 9, baseY + 6 + flutter * 0.2);
-  ctx.lineTo(baseX + dir * 3, baseY + 4);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = "#fda4af";
-  ctx.beginPath();
-  ctx.moveTo(baseX + dir * 2, baseY + 1);
-  ctx.lineTo(baseX + dir * 7, baseY + 2.2);
-  ctx.lineTo(baseX + dir * 11, baseY + 3.5 + tailSwing * 0.45);
-  ctx.lineTo(baseX + dir * 6, baseY + 4);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.restore();
-}
-
     function drawPlayer() {
   const sprite = processedNinjaSprite || ninjaSprite;
 
@@ -1953,7 +1905,7 @@ if (antiCheatRoofActive && antiCheatRoof) {
   // Draw scarf first (always safe)
   ctx.save();
 ctx.translate(0, 2); // slight offset
-drawScarf();
+
 ctx.restore();
 
   // Only draw sprite if it's actually loaded
