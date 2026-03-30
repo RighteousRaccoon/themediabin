@@ -1890,22 +1890,23 @@ if (antiCheatRoofActive && antiCheatRoof) {
     }
 
     function drawScarf() {
-  const baseX = player.facing < 0 ? 14 : -14;
-  const baseY = -18;
+  // anchor near neck / upper back
+  const baseX = player.facing < 0 ? 6 : -6;
+const baseY = -8;
 
   const t = performance.now() * 0.012;
 
-  let flutter = Math.sin(t) * 3.5;
-  let tailSwing = Math.cos(t * 0.9) * 2;
+  let flutter = Math.sin(t) * 2.2;
+  let tailSwing = Math.cos(t * 0.9) * 1.5;
 
   if (Math.abs(player.vx) > 0.2) {
-    flutter += Math.sin(t * 1.8) * 1.5;
-    tailSwing += player.facing < 0 ? -1.5 : 1.5;
+    flutter += Math.sin(t * 1.8) * 1.2;
+    tailSwing += player.facing < 0 ? -1.2 : 1.2;
   }
 
   if (!onGround) {
-    flutter += 1.5;
-    tailSwing += Math.sin(t * 1.6) * 2;
+    flutter += 1.2;
+    tailSwing += Math.sin(t * 1.6) * 1.5;
   }
 
   const dir = player.facing < 0 ? 1 : -1;
@@ -1914,24 +1915,25 @@ if (antiCheatRoofActive && antiCheatRoof) {
   ctx.shadowBlur = 6;
   ctx.shadowColor = "#fb7185";
 
+  // main scarf
   ctx.fillStyle = "#fb7185";
-
   ctx.beginPath();
   ctx.moveTo(baseX, baseY);
-  ctx.lineTo(baseX + dir * 8, baseY + 3 + flutter * 0.2);
-  ctx.lineTo(baseX + dir * 18, baseY + 1 + flutter);
-  ctx.lineTo(baseX + dir * 28, baseY + 6 + tailSwing);
-  ctx.lineTo(baseX + dir * 18, baseY + 9 + flutter * 0.6);
-  ctx.lineTo(baseX + dir * 7, baseY + 7);
+  ctx.lineTo(baseX + dir * 6, baseY + 2);
+  ctx.lineTo(baseX + dir * 12, baseY + 1 + flutter * 0.35);
+  ctx.lineTo(baseX + dir * 18, baseY + 4 + tailSwing);
+  ctx.lineTo(baseX + dir * 12, baseY + 7 + flutter * 0.25);
+  ctx.lineTo(baseX + dir * 4, baseY + 5);
   ctx.closePath();
   ctx.fill();
 
+  // highlight
   ctx.fillStyle = "#fda4af";
   ctx.beginPath();
-  ctx.moveTo(baseX + dir * 5, baseY + 2);
-  ctx.lineTo(baseX + dir * 13, baseY + 4 + flutter * 0.25);
-  ctx.lineTo(baseX + dir * 22, baseY + 6 + tailSwing * 0.7);
-  ctx.lineTo(baseX + dir * 14, baseY + 7 + flutter * 0.4);
+  ctx.moveTo(baseX + dir * 3, baseY + 1);
+  ctx.lineTo(baseX + dir * 9, baseY + 2.5);
+  ctx.lineTo(baseX + dir * 14, baseY + 4 + tailSwing * 0.5);
+  ctx.lineTo(baseX + dir * 8, baseY + 4.5);
   ctx.closePath();
   ctx.fill();
 
