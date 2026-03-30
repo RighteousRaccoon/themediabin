@@ -110,33 +110,34 @@
     <p>Precision platformer prototype.</p>
 
     <div class="game-box">
-      <div class="hud">
-  <div class="scoreboard">Level: <span id="levelText">1</span></div>
-  <div class="scoreboard">Status: <span id="statusText">Ready</span></div>
-  <div class="scoreboard">Dash: <span id="dashText">0</span></div>
-  <div class="scoreboard">Time: <span id="timerText">0.000</span>s</div>
-  <div class="scoreboard">Best: <span id="bestTimeText">--</span></div>
-  <button class="button" id="resetButton">Reset Level</button>
-  <button class="button" id="soundButton">Sound: On</button>
-  <div class="scoreboard">Controls: A/D + Space</div>
-  <select id="levelSelect" class="button">
-  <option value="0">Level 1</option>
-  <option value="1">Level 2</option>
-  <option value="2">Level 3</option>
-  <option value="3">Level 4</option>
-  <option value="4">Level 5</option>
-  <option value="5">Level 6</option>
-  <option value="6">Level 7</option>
-  <option value="7">Level 8</option>
-  <option value="8">Level 9</option>
-  <option value="9">Level 10</option>
-</select>
+  <div class="hud">
+    <div class="scoreboard">Level: <span id="levelText">1</span></div>
+    <div class="scoreboard">Status: <span id="statusText">Ready</span></div>
+    <div class="scoreboard">Dash: <span id="dashText">0</span></div>
+    <div class="scoreboard">Time: <span id="timerText">0.000</span>s</div>
+    <div class="scoreboard">Best: <span id="bestTimeText">--</span></div>
+    <button class="button" id="resetButton">Reset Level</button>
+    <button class="button" id="soundButton">Sound: On</button>
+    <div class="scoreboard">Controls: A/D + Space</div>
 
-<button class="button" id="goLevelButton">Go</button>
+    <select id="levelSelect" class="button">
+      <option value="0">Level 1</option>
+      <option value="1">Level 2</option>
+      <option value="2">Level 3</option>
+      <option value="3">Level 4</option>
+      <option value="4">Level 5</option>
+      <option value="5">Level 6</option>
+      <option value="6">Level 7</option>
+      <option value="7">Level 8</option>
+      <option value="8">Level 9</option>
+      <option value="9">Level 10</option>
+    </select>
+
+    <button class="button" id="goLevelButton">Go</button>
+  </div>
+
+  <canvas id="game" width="900" height="500"></canvas>
 </div>
-
-      <canvas id="game" width="900" height="500"></canvas>
-
       <div class="controls">
         Move: A / D or Arrow Keys<br />
         Jump: Space / W / Arrow Up<br />
@@ -1412,6 +1413,15 @@ soundButton.addEventListener("click", () => {
   soundButton.textContent = soundEnabled ? "Sound: On" : "Sound: Off";
   soundButton.blur();
 });
+
+if (goLevelButton && levelSelect) {
+  goLevelButton.addEventListener("click", () => {
+    const selectedLevel = Number(levelSelect.value);
+    currentLevel = selectedLevel;
+    loadLevel(currentLevel);
+    goLevelButton.blur();
+  });
+}
 
 levelSelect.addEventListener("change", () => {
   levelSelect.blur();
