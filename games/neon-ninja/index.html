@@ -608,7 +608,10 @@ function loadLevel(index) {
   platforms = level.platforms;
   spikes = level.spikes;
   exitPortal = level.portal;
-  dashOrbs = level.dashOrbs || [];
+  dashOrbs = (level.dashOrbs || []).map(orb => ({
+    ...orb,
+    collected: false
+  }));
   currentTheme = level.theme || "cyan";
 
   dashCharges = 0;
@@ -665,15 +668,15 @@ function updatePlayer() {
 
   // Horizontal input
   if (!isDashing) {
-  if (keys.left) {
-    player.vx -= moveSpeed;
-    player.facing = -1;
+    if (keys.left) {
+      player.vx -= moveSpeed;
+      player.facing = -1;
+    }
+    if (keys.right) {
+      player.vx += moveSpeed;
+      player.facing = 1;
+    }
   }
-  if (keys.right) {
-    player.vx += moveSpeed;
-    player.facing = 1;
-  }
-}
 
   // Clamp horizontal speed
   if (player.vx > maxSpeed) player.vx = maxSpeed;
@@ -741,15 +744,10 @@ function updatePlayer() {
     }
   }
 
-  // Reset dash when landing
+  // Landing stops an active dash, but does NOT remove stored dash charge
   if (onGround) {
-    dashCharges = 0;
     isDashing = false;
     dashTimer = 0;
-    dashCharges = 0;
-isDashing = false;
-dashTimer = 0;
-dashText.textContent = dashCharges;
   }
 
   // Keep in bounds
@@ -764,14 +762,18 @@ dashText.textContent = dashCharges;
 
   // Dash orb collection
   for (const orb of dashOrbs) {
+    if (orb.collected) continue;
+
     const dx = player.x + player.width / 2 - orb.x;
     const dy = player.y + player.height / 2 - orb.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < orb.radius + 10) {
-  dashCharges = 1;
-  dashText.textContent = dashCharges;
-}
+      orb.collected = true;
+      dashCharges = 1;
+      dashText.textContent = dashCharges;
+      statusText.textContent = "Dash charged!";
+    }
   }
 
   // Detect wall contact with tiny side probes
@@ -873,6 +875,8 @@ dashText.textContent = dashCharges;
 
 function drawDashOrbs() {
   for (const orb of dashOrbs) {
+    if (orb.collected) continue;
+
     const t = performance.now() * 0.006;
 
     ctx.save();
@@ -1091,16 +1095,15 @@ function drawExitPortal() {
   if (key === "a" || event.key === "ArrowLeft") keys.left = true;
   if (key === "d" || event.key === "ArrowRight") keys.right = true;
 
-  if ((key === "x" || event.key === "Shift") && dashCharges > 0 && !onGround && !isDashing) {
-    dashCharges = 0;
-    isDashing = true;
-    dashTimer = 10;
-    dashCharges = 0;
-dashText.textContent = dashCharges;
-    player.vy = 0;
-    player.vx = player.facing * 10;
-    statusText.textContent = "Dash!";
-  }
+ if ((key === "x" || event.key === "Shift") && dashCharges > 0 && !onGround && !isDashing) {
+  dashCharges = 0;
+  dashText.textContent = dashCharges;
+  isDashing = true;
+  dashTimer = 10;
+  player.vy = 0;
+  player.vx = player.facing * 10;
+  statusText.textContent = "Dash!";
+}
 
   if (key === "w" || key === " " || event.key === "ArrowUp") {
     getAudioContext();
