@@ -561,6 +561,7 @@ const JUMP_BUFFER_FRAMES = 8;
     let coyoteTimer = 0;
 let jumpBufferTimer = 0;
 let wallSlideParticles = [];
+let landingDustParticles = [];
 
     let currentLevel = 0;
     let platforms = [];
@@ -945,6 +946,53 @@ function getGroundFriction() {
       deathParticles = deathParticles.filter(p => p.life > 0);
     }
 
+    function spawnLandingDust(x, y) {
+  const colors = currentTheme === "magenta"
+    ? ["#f9a8d4", "#f472b6", "#c4b5fd", "#94a3b8"]
+    : ["#cbd5e1", "#94a3b8", "#67e8f9", "#c4b5fd"];
+
+  for (let i = 0; i < 10; i++) {
+    const dir = Math.random() < 0.5 ? -1 : 1;
+
+    landingDustParticles.push({
+      x: x + (Math.random() - 0.5) * 10,
+      y: y + Math.random() * 4,
+      vx: dir * (0.8 + Math.random() * 1.8),
+      vy: -0.2 - Math.random() * 1.2,
+      life: 14 + Math.random() * 10,
+      maxLife: 24,
+      size: 3 + Math.floor(Math.random() * 4),
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+}
+
+function updateLandingDustParticles() {
+  for (const p of landingDustParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.92;
+    p.vy += 0.04;
+    p.life -= 1;
+  }
+
+  landingDustParticles = landingDustParticles.filter(p => p.life > 0);
+}
+
+function drawLandingDustParticles() {
+  for (const p of landingDustParticles) {
+    const alpha = p.life / p.maxLife;
+
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.9;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = p.color;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+    ctx.restore();
+  }
+}
+
     function spawnCelebration(x, y) {
       const colors = ["#a855f7", "#c084fc", "#e9d5ff", "#22d3ee"];
 
@@ -1175,6 +1223,7 @@ orbPickupParticles = [];
 dashTrailParticles = [];
 deathParticles = [];
 wallSlideParticles = [];
+landingDustParticles = [];
 deathResetTimer = 0;
 
       mobileMoveX = 0;
@@ -1278,6 +1327,8 @@ deathResetTimer = 0;
 
       const prevX = player.x;
       const prevY = player.y;
+      const wasOnGround = onGround;
+const fallSpeedBeforeCollision = player.vy;
 
       player.x += player.vx;
 
@@ -1332,6 +1383,10 @@ deathResetTimer = 0;
       }
 
       if (onGround) {
+  if (!wasOnGround && fallSpeedBeforeCollision > 2.5) {
+    spawnLandingDust(player.x + player.width / 2, player.y + player.height);
+  }
+
   isDashing = false;
   dashTimer = 0;
   coyoteTimer = COYOTE_FRAMES;
@@ -1711,6 +1766,7 @@ if (jumpBufferTimer > 0) {
       drawExitPortal();
       drawDashTrailParticles();
 drawWallSlideParticles();
+drawLandingDustParticles();
 drawOrbPickupParticles();
 drawCelebration();
 drawDeathParticles();
@@ -1730,6 +1786,7 @@ drawDeathParticles();
       updateDashTrailParticles();
       updateDeathParticles();
       updateWallSlideParticles();
+      updateLandingDustParticles();
 
       if (deathResetTimer > 0) {
         deathResetTimer--;
