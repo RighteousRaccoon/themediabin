@@ -582,15 +582,15 @@ const knobRadius = 23;
     }
 
     function getMoveAcceleration() {
-  return isMobileViewport() ? 0.26 : 0.6;
+  return isMobileViewport() ? 0.26 : 0.48;
 }
 
 function getMoveMaxSpeed() {
-  return isMobileViewport() ? 2.15 : 3.3;
+  return isMobileViewport() ? 2.15 : 2.75;
 }
 
 function getGroundFriction() {
-  return isMobileViewport() ? 0.78 : 0.76;
+  return isMobileViewport() ? 0.78 : 0.68;
 }
 
     function getAudioContext() {
@@ -1847,8 +1847,8 @@ function startGameLoop() {
 
     function tryDash() {
   if (dashCharges > 0 && !onGround && !isDashing) {
-    const dashSpeed = isMobileViewport() ? 15 : 12;
-    const dashFrames = isMobileViewport() ? 14 : 11;
+    const dashSpeed = isMobileViewport() ? 15 : 10.5;
+    const dashFrames = isMobileViewport() ? 14 : 9;
 
     dashCharges = 0;
     dashText.textContent = dashCharges;
