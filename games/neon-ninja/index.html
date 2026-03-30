@@ -235,6 +235,8 @@ let dashOrbs = [];
 let orbPickupParticles = [];
 let dashTrailParticles = [];
 let screenShake = 0;
+let deathParticles = [];
+let deathResetTimer = 0;
 
 bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
 
@@ -305,10 +307,18 @@ function playWinSound() {
 }
 
 function die() {
+  if (levelEnding || deathResetTimer > 0) return;
+
   playDeathSound();
   addScreenShake(8);
   statusText.textContent = "You died!";
-  resetLevel();
+
+  spawnDeathParticles(
+    player.x + player.width / 2,
+    player.y + player.height / 2
+  );
+
+  deathResetTimer = 24;
 }
 
 let currentLevel = 0;
@@ -584,6 +594,52 @@ function spawnCelebration(x, y) {
   }
 }
 
+function spawnDeathParticles(x, y) {
+  const colors = currentTheme === "magenta"
+    ? ["#f472b6", "#fb7185", "#f9a8d4", "#22d3ee"]
+    : ["#22d3ee", "#67e8f9", "#a855f7", "#c084fc"];
+
+  for (let i = 0; i < 22; i++) {
+    const angle = (Math.PI * 2 * i) / 22;
+    const speed = 1.5 + Math.random() * 3;
+
+    deathParticles.push({
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 22 + Math.random() * 10,
+      maxLife: 32,
+      size: 4 + Math.floor(Math.random() * 4),
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+}
+
+function updateDeathParticles() {
+  for (const p of deathParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.96;
+    p.vy *= 0.96;
+    p.life -= 1;
+  }
+
+  deathParticles = deathParticles.filter(p => p.life > 0);
+}
+
+function updateDeathParticles() {
+  for (const p of deathParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.96;
+    p.vy *= 0.96;
+    p.life -= 1;
+  }
+
+  deathParticles = deathParticles.filter(p => p.life > 0);
+}
+
 function spawnOrbPickupParticles(x, y) {
   const colors = ["#fb923c", "#fdba74", "#fff7ed", "#f472b6"];
 
@@ -714,6 +770,8 @@ function loadLevel(index) {
 celebrationParticles = [];
 orbPickupParticles = [];
 dashTrailParticles = [];
+deathParticles = [];
+deathResetTimer = 0;
 
   levelStartTime = performance.now();
   currentTime = 0;
@@ -758,7 +816,7 @@ function updateDashTrailParticles() {
 }
 
 function updatePlayer() {
-  if (levelEnding) return;
+  if (levelEnding || deathResetTimer > 0) return;
 
   touchingWallLeft = false;
   touchingWallRight = false;
@@ -1239,17 +1297,31 @@ function drawExitPortal() {
   drawDashTrailParticles();
   drawOrbPickupParticles();
   drawCelebration();
-  drawPlayer();
+  drawDeathParticles();
+
+  // Only draw player if not in death burst
+  if (deathResetTimer <= 0) {
+    drawPlayer();
+  }
 
   ctx.restore();
 }
 
-  function gameLoop() {
+ function gameLoop() {
   updateTimer();
   updatePlayer();
   updateCelebration();
   updateOrbPickupParticles();
   updateDashTrailParticles();
+  updateDeathParticles();
+
+  if (deathResetTimer > 0) {
+    deathResetTimer--;
+    if (deathResetTimer <= 0) {
+      resetLevel();
+    }
+  }
+
   draw();
   requestAnimationFrame(gameLoop);
 }
