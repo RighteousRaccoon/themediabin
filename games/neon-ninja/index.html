@@ -147,15 +147,6 @@
       image-rendering: pixelated;
     }
 
-    <div class="mobile-controls" id="mobileControls">
-  <div class="mobile-row">
-    <button class="mobile-btn" id="leftBtn">◀</button>
-    <button class="mobile-btn" id="rightBtn">▶</button>
-    <button class="mobile-btn mobile-btn-jump" id="jumpBtn">▲</button>
-    <button class="mobile-btn mobile-btn-dash" id="dashBtn">◆</button>
-  </div>
-</div>
-
     .controls {
       margin-top: 16px;
       color: #cbd5e1;
@@ -205,14 +196,16 @@
     <button class="button" id="goLevelButton">Go</button>
   </div>
 
-  <canvas id="game" width="900" height="500"></canvas>
+ <canvas id="game" width="900" height="500"></canvas>
+
+<div class="mobile-controls" id="mobileControls">
+  <div class="mobile-row">
+    <button class="mobile-btn" id="leftBtn" type="button">◀</button>
+    <button class="mobile-btn" id="rightBtn" type="button">▶</button>
+    <button class="mobile-btn mobile-btn-jump" id="jumpBtn" type="button">▲</button>
+    <button class="mobile-btn mobile-btn-dash" id="dashBtn" type="button">◆</button>
+  </div>
 </div>
-      <div class="controls">
-        Move: A / D or Arrow Keys<br />
-        Jump: Space / W / Arrow Up<br />
-        Restart: R
-      </div>
-    </div>
 
     <div class="links">
       <a href="/games/">← Back to Games</a>
@@ -782,9 +775,9 @@ function winLevel() {
   if (levelEnding) return;
 
   levelEnding = true;
-playWinSound();
-addScreenShake(5);
-statusText.textContent = "Level complete!";
+  playWinSound();
+  addScreenShake(5);
+  statusText.textContent = "Level complete!";
 
   const finalTime = currentTime;
 
@@ -800,66 +793,18 @@ statusText.textContent = "Level complete!";
     exitPortal.y + exitPortal.height / 2
   );
 
-  function bindHoldButton(button, onPress, onRelease) {
-  if (!button) return;
-
-  const press = (event) => {
-    event.preventDefault();
-    button.classList.add("active");
-    onPress();
-  };
-
-  const release = (event) => {
-    event.preventDefault();
-    button.classList.remove("active");
-    onRelease();
-  };
-
-  button.addEventListener("touchstart", press, { passive: false });
-  button.addEventListener("touchend", release, { passive: false });
-  button.addEventListener("touchcancel", release, { passive: false });
-
-  button.addEventListener("mousedown", press);
-  button.addEventListener("mouseup", release);
-  button.addEventListener("mouseleave", release);
-}
-
-bindHoldButton(leftBtn, () => {
-  keys.left = true;
-}, () => {
-  keys.left = false;
-});
-
-bindHoldButton(rightBtn, () => {
-  keys.right = true;
-}, () => {
-  keys.right = false;
-});
-
-if (jumpBtn) {
-  jumpBtn.addEventListener("touchstart", (event) => {
-    event.preventDefault();
-    jumpBtn.classList.add("active");
-    tryJump();
-  }, { passive: false });
-
-  jumpBtn.addEventListener("touchend", (event) => {
-    event.preventDefault();
-    jumpBtn.classList.remove("active");
-  }, { passive: false });
-
-  jumpBtn.addEventListener("mousedown", () => {
-    jumpBtn.classList.add("active");
-    tryJump();
-  });
-
-  jumpBtn.addEventListener("mouseup", () => {
-    jumpBtn.classList.remove("active");
-  });
-
-  jumpBtn.addEventListener("mouseleave", () => {
-    jumpBtn.classList.remove("active");
-  });
+  setTimeout(() => {
+    if (currentLevel < levels.length - 1) {
+      currentLevel += 1;
+      loadLevel(currentLevel);
+    } else {
+      statusText.textContent = "You beat all levels!";
+      currentLevel = 0;
+      setTimeout(() => {
+        loadLevel(currentLevel);
+      }, 700);
+    }
+  }, 900);
 }
 
 if (dashBtn) {
@@ -1598,8 +1543,102 @@ levelSelect.addEventListener("change", () => {
   levelSelect.blur();
 });
 
-    loadLevel(currentLevel);
-    gameLoop();
+function bindHoldButton(button, onPress, onRelease) {
+  if (!button) return;
+
+  const press = (event) => {
+    event.preventDefault();
+    button.classList.add("active");
+    onPress();
+  };
+
+  const release = (event) => {
+    event.preventDefault();
+    button.classList.remove("active");
+    onRelease();
+  };
+
+  button.addEventListener("touchstart", press, { passive: false });
+  button.addEventListener("touchend", release, { passive: false });
+  button.addEventListener("touchcancel", release, { passive: false });
+
+  button.addEventListener("mousedown", press);
+  button.addEventListener("mouseup", release);
+  button.addEventListener("mouseleave", release);
+}
+
+bindHoldButton(
+  leftBtn,
+  () => {
+    keys.left = true;
+  },
+  () => {
+    keys.left = false;
+  }
+);
+
+bindHoldButton(
+  rightBtn,
+  () => {
+    keys.right = true;
+  },
+  () => {
+    keys.right = false;
+  }
+);
+
+if (jumpBtn) {
+  const jumpPress = (event) => {
+    event.preventDefault();
+    jumpBtn.classList.add("active");
+    tryJump();
+  };
+
+  const jumpRelease = (event) => {
+    event.preventDefault();
+    jumpBtn.classList.remove("active");
+  };
+
+  jumpBtn.addEventListener("touchstart", jumpPress, { passive: false });
+  jumpBtn.addEventListener("touchend", jumpRelease, { passive: false });
+  jumpBtn.addEventListener("touchcancel", jumpRelease, { passive: false });
+
+  jumpBtn.addEventListener("mousedown", jumpPress);
+  jumpBtn.addEventListener("mouseup", jumpRelease);
+  jumpBtn.addEventListener("mouseleave", jumpRelease);
+}
+
+if (dashBtn) {
+  const dashPress = (event) => {
+    event.preventDefault();
+    dashBtn.classList.add("active");
+    tryDash();
+  };
+
+  const dashRelease = (event) => {
+    event.preventDefault();
+    dashBtn.classList.remove("active");
+  };
+
+  dashBtn.addEventListener("touchstart", dashPress, { passive: false });
+  dashBtn.addEventListener("touchend", dashRelease, { passive: false });
+  dashBtn.addEventListener("touchcancel", dashRelease, { passive: false });
+
+  dashBtn.addEventListener("mousedown", dashPress);
+  dashBtn.addEventListener("mouseup", dashRelease);
+  dashBtn.addEventListener("mouseleave", dashRelease);
+}
+
+canvas.addEventListener(
+  "touchstart",
+  (event) => {
+    event.preventDefault();
+  },
+  { passive: false }
+);
+
+loadLevel(currentLevel);
+gameLoop();
   </script>
 </body>
 </html>
