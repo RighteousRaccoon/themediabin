@@ -1112,31 +1112,25 @@ function drawExitPortal() {
   requestAnimationFrame(gameLoop);
 }
 
-    window.addEventListener("keydown", (event) => {
+   window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
+
+  if (event.code === "Space" || event.key === "ArrowUp" || event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    event.preventDefault();
+  }
 
   if (key === "a" || event.key === "ArrowLeft") keys.left = true;
   if (key === "d" || event.key === "ArrowRight") keys.right = true;
 
- if ((key === "x" || event.key === "Shift") && dashCharges > 0 && !onGround && !isDashing) {
-  dashCharges = 0;
-  dashText.textContent = dashCharges;
-  isDashing = true;
-  dashTimer = 10;
-  player.vy = 0;
-  player.vx = player.facing * 10;
-  statusText.textContent = "Dash!";
-
-  if (key >= "1" && key <= "9") {
-  currentLevel = Number(key) - 1;
-  loadLevel(currentLevel);
-}
-
-if (key === "0") {
-  currentLevel = 9;
-  loadLevel(currentLevel);
-}
-}
+  if ((key === "x" || event.key === "Shift") && dashCharges > 0 && !onGround && !isDashing) {
+    dashCharges = 0;
+    dashText.textContent = dashCharges;
+    isDashing = true;
+    dashTimer = 10;
+    player.vy = 0;
+    player.vx = player.facing * 10;
+    statusText.textContent = "Dash!";
+  }
 
   if (key === "w" || key === " " || event.key === "ArrowUp") {
     getAudioContext();
@@ -1168,22 +1162,43 @@ if (key === "0") {
   }
 });
 
-    window.addEventListener("keyup", (event) => {
-      const key = event.key.toLowerCase();
+window.addEventListener("keyup", (event) => {
+  const key = event.key.toLowerCase();
 
-      if (key === "a" || event.key === "ArrowLeft") keys.left = false;
-      if (key === "d" || event.key === "ArrowRight") keys.right = false;
-    });
+  if (event.code === "Space" || event.key === "ArrowUp" || event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    event.preventDefault();
+  }
+
+  if (key === "a" || event.key === "ArrowLeft") keys.left = false;
+  if (key === "d" || event.key === "ArrowRight") keys.right = false;
+});
+
+window.addEventListener("mousedown", () => {
+  if (document.activeElement) {
+    document.activeElement.blur();
+  }
+});
 
 goLevelButton.addEventListener("click", () => {
   const selectedLevel = Number(levelSelect.value);
   currentLevel = selectedLevel;
   loadLevel(currentLevel);
+  goLevelButton.blur();
 });
-    resetButton.addEventListener("click", resetLevel);
-    soundButton.addEventListener("click", () => {
+
+resetButton.addEventListener("click", () => {
+  resetLevel();
+  resetButton.blur();
+});
+
+soundButton.addEventListener("click", () => {
   soundEnabled = !soundEnabled;
   soundButton.textContent = soundEnabled ? "Sound: On" : "Sound: Off";
+  soundButton.blur();
+});
+
+levelSelect.addEventListener("change", () => {
+  levelSelect.blur();
 });
 
     loadLevel(currentLevel);
