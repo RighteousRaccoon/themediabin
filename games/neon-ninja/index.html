@@ -542,6 +542,8 @@
     let antiCheatMessageTimer = 0;
     let antiCheatFlickerTimer = 0;
     let antiCheatPlatformTimer = 0;
+    let antiCheatRoofActive = false;
+let antiCheatRoofTimer = 0;
 
     let currentLevel = 0;
     let platforms = [];
@@ -1213,9 +1215,11 @@
       touchingWallRight = false;
       wallSliding = false;
       antiCheatPlatformActive = false;
-      antiCheatMessageTimer = 0;
-      antiCheatFlickerTimer = 0;
-      antiCheatPlatformTimer = 0;
+antiCheatPlatformTimer = 0;
+antiCheatMessageTimer = 0;
+antiCheatFlickerTimer = 0;
+antiCheatRoofActive = false;
+antiCheatRoofTimer = 0;
 
       levelEnding = false;
       celebrationParticles = [];
@@ -1286,6 +1290,13 @@
   }
 }
 
+if (antiCheatRoofTimer > 0) {
+  antiCheatRoofTimer--;
+  if (antiCheatRoofTimer <= 0) {
+    antiCheatRoofActive = false;
+  }
+}
+
       touchingWallLeft = false;
       touchingWallRight = false;
       wallSliding = false;
@@ -1340,9 +1351,22 @@
       const wasOnGround = onGround;
       const fallSpeedBeforeCollision = player.vy;
 
-      const activePlatforms = antiCheatPlatformActive
-        ? [...platforms, antiCheatPlatform]
-        : platforms;
+      const antiCheatRoof = {
+  x: 0,
+  y: 40,
+  width: 900,
+  height: 16
+};
+
+      const activePlatforms = [...platforms];
+
+if (antiCheatPlatformActive) {
+  activePlatforms.push(antiCheatPlatform);
+}
+
+if (antiCheatRoofActive) {
+  activePlatforms.push(antiCheatRoof);
+}
 
       player.x += player.vx;
 
@@ -1395,6 +1419,18 @@
           }
         }
       }
+
+      if (
+  !antiCheatRoofActive &&
+  player.y < 70 &&
+  !onGround
+) {
+  antiCheatRoofActive = true;
+  antiCheatRoofTimer = 180;
+  antiCheatMessageTimer = 90;
+  antiCheatFlickerTimer = 28;
+  statusText.textContent = "No cheating";
+}
 
       if (
   !antiCheatPlatformActive &&
@@ -1526,8 +1562,9 @@ statusText.textContent = "No cheating";
         }
       }
 
-      if (
+  if (
   !antiCheatPlatformActive &&
+  !antiCheatRoofActive &&
   rectOverlap(
     player.x,
     player.y,
@@ -1728,10 +1765,44 @@ statusText.textContent = "No cheating";
             4
           );
 
-          ctx.restore();
-        }
-      }
-    }
+          if (antiCheatRoofActive) {
+  const flickerPhase = antiCheatFlickerTimer > 0
+    ? Math.floor(performance.now() / 40) % 2 === 0
+    : true;
+
+  if (flickerPhase) {
+    ctx.save();
+    ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
+    ctx.shadowColor = "#fb7185";
+
+    ctx.fillStyle = "#3f0d1b";
+    ctx.fillRect(
+      antiCheatRoof.x,
+      antiCheatRoof.y,
+      antiCheatRoof.width,
+      antiCheatRoof.height
+    );
+
+    ctx.fillStyle = "#f43f5e";
+    ctx.fillRect(
+      antiCheatRoof.x,
+      antiCheatRoof.y,
+      antiCheatRoof.width,
+      4
+    );
+
+    ctx.fillStyle = "#fb7185";
+    ctx.fillRect(
+      antiCheatRoof.x + 4,
+      antiCheatRoof.y + 6,
+      antiCheatRoof.width - 8,
+      4
+    );
+
+    ctx.restore();
+  }
+}
+
 
     function drawSpikes() {
       const fill = currentTheme === "magenta" ? "#fda4af" : "#e5e7eb";
