@@ -496,6 +496,13 @@
   height: 18
 };
 
+const antiCheatRoof = {
+  x: 0,
+  y: 40,
+  width: 900,
+  height: 16
+};
+
     const keys = {
       left: false,
       right: false
@@ -1350,13 +1357,6 @@ if (antiCheatRoofTimer > 0) {
       const prevY = player.y;
       const wasOnGround = onGround;
       const fallSpeedBeforeCollision = player.vy;
-
-      const antiCheatRoof = {
-  x: 0,
-  y: 40,
-  width: 900,
-  height: 16
-};
 
       const activePlatforms = [...platforms];
 
