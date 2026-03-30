@@ -1716,90 +1716,95 @@ statusText.textContent = "No cheating";
     }
 
     function drawPlatforms() {
-      const topColor = currentTheme === "magenta" ? "#f472b6" : "#22d3ee";
-      const baseColor = currentTheme === "magenta" ? "#312e81" : "#1f2937";
-      const highlightColor = currentTheme === "magenta" ? "#4338ca" : "#374151";
+  const topColor = currentTheme === "magenta" ? "#f472b6" : "#22d3ee";
+  const baseColor = currentTheme === "magenta" ? "#312e81" : "#1f2937";
+  const highlightColor = currentTheme === "magenta" ? "#4338ca" : "#374151";
 
-      for (const platform of platforms) {
-        ctx.fillStyle = baseColor;
-        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+  for (const platform of platforms) {
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
 
-        ctx.fillStyle = topColor;
-        ctx.fillRect(platform.x, platform.y, platform.width, 4);
+    ctx.fillStyle = topColor;
+    ctx.fillRect(platform.x, platform.y, platform.width, 4);
 
-        ctx.fillStyle = highlightColor;
-        ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
-      }
+    ctx.fillStyle = highlightColor;
+    ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
+  }
 
-      if (antiCheatPlatformActive) {
-        const flickerPhase = antiCheatFlickerTimer > 0
-          ? Math.floor(performance.now() / 40) % 2 === 0
-          : true;
+  if (antiCheatPlatformActive) {
+    const flickerPhase = antiCheatFlickerTimer > 0
+      ? Math.floor(performance.now() / 40) % 2 === 0
+      : true;
 
-        if (flickerPhase) {
-          ctx.save();
-          ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
-          ctx.shadowColor = "#fb7185";
+    if (flickerPhase) {
+      ctx.save();
+      ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
+      ctx.shadowColor = "#fb7185";
 
-          ctx.fillStyle = "#3f0d1b";
-          ctx.fillRect(
-            antiCheatPlatform.x,
-            antiCheatPlatform.y,
-            antiCheatPlatform.width,
-            antiCheatPlatform.height
-          );
+      ctx.fillStyle = "#3f0d1b";
+      ctx.fillRect(
+        antiCheatPlatform.x,
+        antiCheatPlatform.y,
+        antiCheatPlatform.width,
+        antiCheatPlatform.height
+      );
 
-          ctx.fillStyle = "#f43f5e";
-          ctx.fillRect(
-            antiCheatPlatform.x,
-            antiCheatPlatform.y,
-            antiCheatPlatform.width,
-            4
-          );
+      ctx.fillStyle = "#f43f5e";
+      ctx.fillRect(
+        antiCheatPlatform.x,
+        antiCheatPlatform.y,
+        antiCheatPlatform.width,
+        4
+      );
 
-          ctx.fillStyle = "#fb7185";
-          ctx.fillRect(
-            antiCheatPlatform.x + 4,
-            antiCheatPlatform.y + 6,
-            antiCheatPlatform.width - 8,
-            4
-          );
+      ctx.fillStyle = "#fb7185";
+      ctx.fillRect(
+        antiCheatPlatform.x + 4,
+        antiCheatPlatform.y + 6,
+        antiCheatPlatform.width - 8,
+        4
+      );
 
-          if (antiCheatRoofActive) {
-  const flickerPhase = antiCheatFlickerTimer > 0
-    ? Math.floor(performance.now() / 40) % 2 === 0
-    : true;
+      ctx.restore();
+    }
+  }
 
-  if (flickerPhase) {
-    ctx.save();
-    ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
-    ctx.shadowColor = "#fb7185";
+  if (antiCheatRoofActive) {
+    const flickerPhase = antiCheatFlickerTimer > 0
+      ? Math.floor(performance.now() / 40) % 2 === 0
+      : true;
 
-    ctx.fillStyle = "#3f0d1b";
-    ctx.fillRect(
-      antiCheatRoof.x,
-      antiCheatRoof.y,
-      antiCheatRoof.width,
-      antiCheatRoof.height
-    );
+    if (flickerPhase) {
+      ctx.save();
+      ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
+      ctx.shadowColor = "#fb7185";
 
-    ctx.fillStyle = "#f43f5e";
-    ctx.fillRect(
-      antiCheatRoof.x,
-      antiCheatRoof.y,
-      antiCheatRoof.width,
-      4
-    );
+      ctx.fillStyle = "#3f0d1b";
+      ctx.fillRect(
+        antiCheatRoof.x,
+        antiCheatRoof.y,
+        antiCheatRoof.width,
+        antiCheatRoof.height
+      );
 
-    ctx.fillStyle = "#fb7185";
-    ctx.fillRect(
-      antiCheatRoof.x + 4,
-      antiCheatRoof.y + 6,
-      antiCheatRoof.width - 8,
-      4
-    );
+      ctx.fillStyle = "#f43f5e";
+      ctx.fillRect(
+        antiCheatRoof.x,
+        antiCheatRoof.y,
+        antiCheatRoof.width,
+        4
+      );
 
-    ctx.restore();
+      ctx.fillStyle = "#fb7185";
+      ctx.fillRect(
+        antiCheatRoof.x + 4,
+        antiCheatRoof.y + 6,
+        antiCheatRoof.width - 8,
+        4
+      );
+
+      ctx.restore();
+    }
   }
 }
 
