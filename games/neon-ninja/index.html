@@ -560,6 +560,7 @@ const JUMP_BUFFER_FRAMES = 8;
     let deathResetTimer = 0;
     let coyoteTimer = 0;
 let jumpBufferTimer = 0;
+let wallSlideParticles = [];
 
     let currentLevel = 0;
     let platforms = [];
@@ -985,6 +986,61 @@ function getGroundFriction() {
       }
     }
 
+    function spawnWallSlideParticle() {
+  const colors = [
+    "#ff4d6d",
+    "#f97316",
+    "#facc15",
+    "#22c55e",
+    "#38bdf8",
+    "#818cf8",
+    "#c084fc"
+  ];
+
+  const sideX = touchingWallLeft
+    ? player.x - 2
+    : player.x + player.width + 2;
+
+  const sparkY = player.y + 6 + Math.random() * (player.height - 12);
+
+  wallSlideParticles.push({
+    x: sideX,
+    y: sparkY,
+    vx: touchingWallLeft ? 1 + Math.random() * 1.5 : -1 - Math.random() * 1.5,
+    vy: 0.5 + Math.random() * 1.5,
+    life: 12 + Math.random() * 8,
+    maxLife: 20,
+    size: 2 + Math.floor(Math.random() * 3),
+    color: colors[Math.floor(Math.random() * colors.length)]
+  });
+}
+
+function updateWallSlideParticles() {
+  for (const p of wallSlideParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.96;
+    p.vy *= 0.98;
+    p.life -= 1;
+  }
+
+  wallSlideParticles = wallSlideParticles.filter(p => p.life > 0);
+}
+
+function drawWallSlideParticles() {
+  for (const p of wallSlideParticles) {
+    const alpha = p.life / p.maxLife;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = p.color;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+    ctx.restore();
+  }
+}
+
     function spawnOrbPickupParticles(x, y) {
       const colors = ["#fb923c", "#fdba74", "#fff7ed", "#f472b6"];
 
@@ -1096,9 +1152,11 @@ function getGroundFriction() {
       currentTheme = level.theme || "cyan";
 
       dashCharges = 0;
-      isDashing = false;
-      dashTimer = 0;
-      dashText.textContent = dashCharges;
+isDashing = false;
+dashTimer = 0;
+coyoteTimer = 0;
+jumpBufferTimer = 0;
+dashText.textContent = dashCharges;
 
       player.x = level.playerStart.x;
       player.y = level.playerStart.y;
@@ -1113,10 +1171,11 @@ function getGroundFriction() {
 
       levelEnding = false;
       celebrationParticles = [];
-      orbPickupParticles = [];
-      dashTrailParticles = [];
-      deathParticles = [];
-      deathResetTimer = 0;
+orbPickupParticles = [];
+dashTrailParticles = [];
+deathParticles = [];
+wallSlideParticles = [];
+deathResetTimer = 0;
 
       mobileMoveX = 0;
       resetStick();
@@ -1348,14 +1407,19 @@ if (jumpBufferTimer > 0) {
       if (player.x + player.width >= canvas.width) touchingWallRight = true;
 
       if (!onGround && player.vy > 0 && (touchingWallLeft || touchingWallRight)) {
-        wallSliding = true;
-        if (player.vy > 2) player.vy = 2;
-        statusText.textContent = "Wall sliding";
-      } else if (!onGround) {
-        statusText.textContent = "Jumping";
-      } else {
-        statusText.textContent = "Ready";
-      }
+  wallSliding = true;
+  if (player.vy > 2) player.vy = 2;
+
+  if (Math.random() < 0.55) {
+    spawnWallSlideParticle();
+  }
+
+  statusText.textContent = "Wall sliding";
+} else if (!onGround) {
+  statusText.textContent = "Jumping";
+} else {
+  statusText.textContent = "Ready";
+}
 
       if (!keys.left && !keys.right && Math.abs(mobileMoveX) < 0.05 && onGround) {
         player.vx *= moveFriction;
@@ -1646,9 +1710,10 @@ if (jumpBufferTimer > 0) {
       drawDashOrbs();
       drawExitPortal();
       drawDashTrailParticles();
-      drawOrbPickupParticles();
-      drawCelebration();
-      drawDeathParticles();
+drawWallSlideParticles();
+drawOrbPickupParticles();
+drawCelebration();
+drawDeathParticles();
 
       if (deathResetTimer <= 0) {
         drawPlayer();
@@ -1664,6 +1729,7 @@ if (jumpBufferTimer > 0) {
       updateOrbPickupParticles();
       updateDashTrailParticles();
       updateDeathParticles();
+      updateWallSlideParticles();
 
       if (deathResetTimer > 0) {
         deathResetTimer--;
