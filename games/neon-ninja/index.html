@@ -490,11 +490,11 @@
     const JUMP_BUFFER_FRAMES = 8;
 
     const antiCheatPlatform = {
-      x: 760,
-      y: 120,
-      width: 110,
-      height: 18
-    };
+  x: 735,
+  y: 210,
+  width: 155,
+  height: 18
+};
 
     const keys = {
       left: false,
@@ -541,6 +541,7 @@
     let antiCheatPlatformActive = false;
     let antiCheatMessageTimer = 0;
     let antiCheatFlickerTimer = 0;
+    let antiCheatPlatformTimer = 0;
 
     let currentLevel = 0;
     let platforms = [];
@@ -1214,6 +1215,7 @@
       antiCheatPlatformActive = false;
       antiCheatMessageTimer = 0;
       antiCheatFlickerTimer = 0;
+      antiCheatPlatformTimer = 0;
 
       levelEnding = false;
       celebrationParticles = [];
@@ -1276,6 +1278,13 @@
       if (coyoteTimer > 0) coyoteTimer--;
       if (antiCheatMessageTimer > 0) antiCheatMessageTimer--;
       if (antiCheatFlickerTimer > 0) antiCheatFlickerTimer--;
+
+      if (antiCheatPlatformTimer > 0) {
+  antiCheatPlatformTimer--;
+  if (antiCheatPlatformTimer <= 0) {
+    antiCheatPlatformActive = false;
+  }
+}
 
       touchingWallLeft = false;
       touchingWallRight = false;
@@ -1388,16 +1397,17 @@
       }
 
       if (
-        !antiCheatPlatformActive &&
-        player.x + player.width > canvas.width - 40 &&
-        player.y < 180 &&
-        !onGround
-      ) {
-        antiCheatPlatformActive = true;
-        antiCheatMessageTimer = 90;
-        antiCheatFlickerTimer = 28;
-        statusText.textContent = "No cheating";
-      }
+  !antiCheatPlatformActive &&
+  player.x + player.width > 860 &&
+  player.y < 260 &&
+  !onGround
+) {
+  antiCheatPlatformActive = true;
+antiCheatPlatformTimer = 180;
+antiCheatMessageTimer = 90;
+antiCheatFlickerTimer = 28;
+statusText.textContent = "No cheating";
+}
 
       if (onGround) {
         if (!wasOnGround && fallSpeedBeforeCollision > 2.5) {
@@ -1517,20 +1527,21 @@
       }
 
       if (
-        rectOverlap(
-          player.x,
-          player.y,
-          player.width,
-          player.height,
-          exitPortal.x,
-          exitPortal.y,
-          exitPortal.width,
-          exitPortal.height
-        )
-      ) {
-        winLevel();
-        return;
-      }
+  !antiCheatPlatformActive &&
+  rectOverlap(
+    player.x,
+    player.y,
+    player.width,
+    player.height,
+    exitPortal.x,
+    exitPortal.y,
+    exitPortal.width,
+    exitPortal.height
+  )
+) {
+  winLevel();
+  return;
+}
 
       if (player.y > canvas.height + 100) {
         resetLevel();
