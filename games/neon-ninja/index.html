@@ -1902,46 +1902,37 @@ if (antiCheatRoofActive && antiCheatRoof) {
     ctx.scale(-1, 1);
   }
 
-  // Draw scarf first (always safe)
-  ctx.save();
-ctx.translate(0, 2); // slight offset
-
-ctx.restore();
-
-  // Only draw sprite if it's actually loaded
   if (sprite && sprite.width > 0) {
-  const frameWidth = sprite.width / 4;
-  const frameHeight = sprite.height;
+    // force 4 horizontal frames
+    const frameWidth = Math.floor(sprite.width / 4);
+    const frameHeight = sprite.height;
 
-  let frame = 0;
+    let frame = 0;
 
-  if (!onGround || wallSliding) {
-    frame = 3;
-  } else if (Math.abs(player.vx) > 0.2) {
-    frame = Math.floor(performance.now() / 120) % 2 + 1;
+    if (!onGround || wallSliding) {
+      frame = 3;
+    } else if (Math.abs(player.vx) > 0.2) {
+      frame = Math.floor(performance.now() / 150) % 2 + 1;
+    }
+
+    const cropX = frame * frameWidth;
+    const cropY = 0;
+    const cropW = frameWidth;
+    const cropH = frameHeight;
+
+    ctx.drawImage(
+      sprite,
+      cropX, cropY,
+      cropW, cropH,
+      -drawWidth / 2, -drawHeight / 2,
+      drawWidth, drawHeight
+    );
+  } else {
+    ctx.fillStyle = "#1f2937";
+    ctx.fillRect(-12, -14, 24, 28);
+    ctx.fillStyle = "#22d3ee";
+    ctx.fillRect(-8, -4, 16, 4);
   }
-
-  const cropX = frame * frameWidth + frameWidth * 0.10;
-  const cropY = frameHeight * 0.04;
-  const cropW = frameWidth * 0.80;
-  const cropH = frameHeight * 0.92;
-
-  ctx.drawImage(
-    sprite,
-    cropX, cropY,
-    cropW, cropH,
-    -drawWidth / 2, -drawHeight / 2,
-    drawWidth, drawHeight
-  );
-} else {
-  ctx.fillStyle = "#1f2937";
-  ctx.fillRect(-12, -14, 24, 28);
-  ctx.fillStyle = "#22d3ee";
-  ctx.fillRect(-8, -4, 16, 4);
-}
-
-// draw scarf on top
-drawScarf();
 
   ctx.restore();
 }
