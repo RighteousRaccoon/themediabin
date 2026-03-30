@@ -90,92 +90,107 @@
       image-rendering: pixelated;
       touch-action: none;
     }
+ 
+    .play-area {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
 
-    .mobile-controls {
-      display: none;
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
+.mobile-controls {
+  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
 
-    .stick-zone {
-      position: absolute;
-      left: 14px;
-      bottom: 14px;
-      width: 150px;
-      height: 150px;
-      pointer-events: auto;
-      touch-action: none;
-    }
+.stick-zone {
+  position: absolute;
+  left: 12px;
+  bottom: 20px;
+  width: 132px;
+  height: 132px;
+  pointer-events: auto;
+  touch-action: none;
+}
 
-    .stick-base {
-      position: absolute;
-      left: 15px;
-      top: 15px;
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: rgba(30, 41, 59, 0.7);
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.22);
-    }
+.stick-base {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  background: rgba(30, 41, 59, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.22);
+  backdrop-filter: blur(2px);
+}
 
-    .stick-knob {
-      position: absolute;
-      left: 45px;
-      top: 45px;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: rgba(37, 99, 235, 0.9);
-      border: 1px solid rgba(191, 219, 254, 0.65);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.22);
-      transform: translate(0, 0);
-    }
+.stick-knob {
+  position: absolute;
+  left: 41px;
+  top: 41px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.92);
+  border: 1px solid rgba(191, 219, 254, 0.6);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.22);
+  transform: translate(0, 0);
+}
 
-    .action-zone {
-      position: absolute;
-      right: 14px;
-      bottom: 14px;
-      display: flex;
-      gap: 12px;
-      align-items: flex-end;
-      pointer-events: auto;
-    }
+.action-zone {
+  position: absolute;
+  right: 12px;
+  bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  pointer-events: auto;
+}
 
-    .mobile-btn {
-      border: none;
-      border-radius: 18px;
-      width: 78px;
-      height: 78px;
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: white;
-      border: 1px solid #334155;
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
-      touch-action: manipulation;
-      pointer-events: auto;
-    }
+.mobile-btn {
+  border: none;
+  border-radius: 18px;
+  width: 68px;
+  height: 68px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  border: 1px solid #334155;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  touch-action: manipulation;
+  pointer-events: auto;
+  opacity: 0.92;
+}
 
-    .mobile-btn:active,
-    .mobile-btn.active {
-      transform: scale(0.97);
-      opacity: 0.9;
-    }
+.mobile-btn-jump {
+  background: rgba(37, 99, 235, 0.92);
+}
 
-    .mobile-btn-jump {
-      background: rgba(37, 99, 235, 0.95);
-    }
+.mobile-btn-dash {
+  background: rgba(124, 58, 237, 0.92);
+}
 
-    .mobile-btn-dash {
-      background: rgba(124, 58, 237, 0.95);
-    }
-
-    .fullscreen-wrap {
-      display: none;
-      margin-top: 14px;
-      justify-content: center;
-    }
+.fullscreen-btn {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.78);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  backdrop-filter: blur(2px);
+}
 
     .controls {
       margin-top: 16px;
@@ -194,30 +209,30 @@
     }
 
     @media (max-width: 900px) {
-      body {
-        padding: 10px;
-      }
+  .mobile-controls {
+    display: block;
+  }
 
-      .game-box {
-        padding: 12px;
-      }
+  .fullscreen-btn {
+    display: block;
+  }
 
-      .hud {
-        justify-content: center;
-      }
+  body {
+    padding: 8px;
+  }
 
-      .mobile-controls {
-        display: block;
-      }
+  .game-box {
+    padding: 10px;
+  }
 
-      .fullscreen-wrap {
-        display: flex;
-      }
+  .hud {
+    justify-content: center;
+  }
 
-      .controls {
-        font-size: 0.95rem;
-      }
-    }
+  .controls {
+    font-size: 0.92rem;
+  }
+}
   </style>
 </head>
 <body>
@@ -252,24 +267,23 @@
         <button class="button" id="goLevelButton" type="button">Go</button>
       </div>
 
-      <canvas id="game" width="900" height="500"></canvas>
+      <div class="play-area">
+  <canvas id="game" width="900" height="500"></canvas>
 
-      <div class="mobile-controls" id="mobileControls">
-        <div class="stick-zone" id="stickZone">
-          <div class="stick-base"></div>
-          <div class="stick-knob" id="stickKnob"></div>
-        </div>
+  <button class="fullscreen-btn" id="fullscreenButton" type="button">⛶</button>
 
-        <div class="action-zone">
-          <button class="mobile-btn mobile-btn-jump" id="jumpBtn" type="button">▲</button>
-          <button class="mobile-btn mobile-btn-dash" id="dashBtn" type="button">◆</button>
-        </div>
-      </div>
-
-      <div class="fullscreen-wrap">
-        <button class="button" id="fullscreenButton" type="button">Fullscreen</button>
-      </div>
+  <div class="mobile-controls" id="mobileControls">
+    <div class="stick-zone" id="stickZone">
+      <div class="stick-base"></div>
+      <div class="stick-knob" id="stickKnob"></div>
     </div>
+
+    <div class="action-zone">
+      <button class="mobile-btn mobile-btn-jump" id="jumpBtn" type="button">▲</button>
+      <button class="mobile-btn mobile-btn-dash" id="dashBtn" type="button">◆</button>
+    </div>
+  </div>
+</div>
 
     <div class="controls">
       Move: A / D or Arrow Keys<br />
@@ -383,8 +397,8 @@
 
     let mobileMoveX = 0;
     let stickActive = false;
-    const stickRadius = 60;
-    const knobRadius = 30;
+    const stickRadius = 56;
+const knobRadius = 25;
 
     bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
 
@@ -393,16 +407,16 @@
     }
 
     function getMoveAcceleration() {
-      return isMobileViewport() ? 0.38 : moveSpeed;
-    }
+  return isMobileViewport() ? 0.26 : 0.8;
+}
 
-    function getMoveMaxSpeed() {
-      return isMobileViewport() ? 2.8 : maxSpeed;
-    }
+function getMoveMaxSpeed() {
+  return isMobileViewport() ? 2.35 : 4.2;
+}
 
-    function getGroundFriction() {
-      return isMobileViewport() ? 0.72 : friction;
-    }
+function getGroundFriction() {
+  return isMobileViewport() ? 0.78 : 0.8;
+}
 
     function getAudioContext() {
       if (!audioContext) {
@@ -1004,21 +1018,21 @@
       const moveFriction = getGroundFriction();
 
       if (!isDashing) {
-        if (keys.left) {
-          player.vx -= moveAccel;
-          player.facing = -1;
-        }
-        if (keys.right) {
-          player.vx += moveAccel;
-          player.facing = 1;
-        }
+  if (keys.left) {
+    player.vx -= moveAccel;
+    player.facing = -1;
+  }
+  if (keys.right) {
+    player.vx += moveAccel;
+    player.facing = 1;
+  }
 
-        if (Math.abs(mobileMoveX) > 0.05) {
-          player.vx += mobileMoveX * moveAccel;
-          if (mobileMoveX < -0.1) player.facing = -1;
-          if (mobileMoveX > 0.1) player.facing = 1;
-        }
-      }
+  if (isMobileViewport() && Math.abs(mobileMoveX) > 0.05) {
+    player.vx += mobileMoveX * moveAccel;
+    if (mobileMoveX < -0.1) player.facing = -1;
+    if (mobileMoveX > 0.1) player.facing = 1;
+  }
+}
 
       if (!isDashing) {
         if (player.vx > moveCap) player.vx = moveCap;
