@@ -22,9 +22,9 @@
     }
 
     .wrapper {
-      width: min(1000px, 100%);
-      text-align: center;
-    }
+  width: min(1400px, 100%);
+  text-align: center;
+}
 
     h1 {
       margin-bottom: 10px;
@@ -37,13 +37,14 @@
     }
 
     .game-box {
-      position: relative;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid #1e293b;
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 16px 32px rgba(0,0,0,0.28);
-    }
+  position: relative;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #1e293b;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 16px 32px rgba(0,0,0,0.28);
+  width: 100%;
+}
 
     .hud {
       display: flex;
@@ -79,24 +80,24 @@
     }
 
     canvas {
-      background: linear-gradient(180deg, #020617, #111827);
-      border: 1px solid #334155;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 900px;
-      height: auto;
-      display: block;
-      margin: 0 auto;
-      image-rendering: pixelated;
-      touch-action: none;
-    }
+  background: linear-gradient(180deg, #020617, #111827);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  image-rendering: pixelated;
+  touch-action: none;
+}
 
     .play-area {
-      position: relative;
-      width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
-    }
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
     .play-area:fullscreen {
       width: 100vw;
@@ -498,9 +499,9 @@
 
 const antiCheatRoof = {
   x: 0,
-  y: 40,
+  y: 8,
   width: 900,
-  height: 16
+  height: 14
 };
 
     const keys = {
