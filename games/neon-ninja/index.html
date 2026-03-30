@@ -1890,50 +1890,47 @@ if (antiCheatRoofActive && antiCheatRoof) {
     }
 
     function drawScarf() {
-  // anchor near neck / upper back
-  const baseX = player.facing < 0 ? 6 : -6;
-const baseY = -8;
+  const baseX = player.facing < 0 ? 5 : -5;
+  const baseY = -9;
 
   const t = performance.now() * 0.012;
 
-  let flutter = Math.sin(t) * 2.2;
-  let tailSwing = Math.cos(t * 0.9) * 1.5;
+  let flutter = Math.sin(t) * 1.8;
+  let tailSwing = Math.cos(t * 0.9) * 1.2;
 
   if (Math.abs(player.vx) > 0.2) {
-    flutter += Math.sin(t * 1.8) * 1.2;
-    tailSwing += player.facing < 0 ? -1.2 : 1.2;
+    flutter += Math.sin(t * 1.8) * 1.0;
+    tailSwing += player.facing < 0 ? -1.0 : 1.0;
   }
 
   if (!onGround) {
-    flutter += 1.2;
-    tailSwing += Math.sin(t * 1.6) * 1.5;
+    flutter += 1.0;
+    tailSwing += Math.sin(t * 1.6) * 1.2;
   }
 
   const dir = player.facing < 0 ? 1 : -1;
 
   ctx.save();
-  ctx.shadowBlur = 6;
+  ctx.shadowBlur = 5;
   ctx.shadowColor = "#fb7185";
 
-  // main scarf
   ctx.fillStyle = "#fb7185";
   ctx.beginPath();
   ctx.moveTo(baseX, baseY);
-  ctx.lineTo(baseX + dir * 6, baseY + 2);
-  ctx.lineTo(baseX + dir * 12, baseY + 1 + flutter * 0.35);
-  ctx.lineTo(baseX + dir * 18, baseY + 4 + tailSwing);
-  ctx.lineTo(baseX + dir * 12, baseY + 7 + flutter * 0.25);
-  ctx.lineTo(baseX + dir * 4, baseY + 5);
+  ctx.lineTo(baseX + dir * 4, baseY + 2);
+  ctx.lineTo(baseX + dir * 9, baseY + 1 + flutter * 0.35);
+  ctx.lineTo(baseX + dir * 14, baseY + 4 + tailSwing);
+  ctx.lineTo(baseX + dir * 9, baseY + 6 + flutter * 0.2);
+  ctx.lineTo(baseX + dir * 3, baseY + 4);
   ctx.closePath();
   ctx.fill();
 
-  // highlight
   ctx.fillStyle = "#fda4af";
   ctx.beginPath();
-  ctx.moveTo(baseX + dir * 3, baseY + 1);
-  ctx.lineTo(baseX + dir * 9, baseY + 2.5);
-  ctx.lineTo(baseX + dir * 14, baseY + 4 + tailSwing * 0.5);
-  ctx.lineTo(baseX + dir * 8, baseY + 4.5);
+  ctx.moveTo(baseX + dir * 2, baseY + 1);
+  ctx.lineTo(baseX + dir * 7, baseY + 2.2);
+  ctx.lineTo(baseX + dir * 11, baseY + 3.5 + tailSwing * 0.45);
+  ctx.lineTo(baseX + dir * 6, baseY + 4);
   ctx.closePath();
   ctx.fill();
 
@@ -1961,36 +1958,38 @@ ctx.restore();
 
   // Only draw sprite if it's actually loaded
   if (sprite && sprite.width > 0) {
-    const frameWidth = sprite.width / 4;
-    const frameHeight = sprite.height;
+  const frameWidth = sprite.width / 4;
+  const frameHeight = sprite.height;
 
-    let frame = 0;
+  let frame = 0;
 
-    if (!onGround || wallSliding) {
-      frame = 3;
-    } else if (Math.abs(player.vx) > 0.2) {
-      frame = Math.floor(performance.now() / 120) % 2 + 1;
-    }
-
-    const cropX = frame * frameWidth + frameWidth * 0.10;
-    const cropY = frameHeight * 0.04;
-    const cropW = frameWidth * 0.80;
-    const cropH = frameHeight * 0.92;
-
-    ctx.drawImage(
-      sprite,
-      cropX, cropY,
-      cropW, cropH,
-      -drawWidth / 2, -drawHeight / 2,
-      drawWidth, drawHeight
-    );
-  } else {
-    // fallback placeholder
-    ctx.fillStyle = "#1f2937";
-    ctx.fillRect(-12, -14, 24, 28);
-    ctx.fillStyle = "#22d3ee";
-    ctx.fillRect(-8, -4, 16, 4);
+  if (!onGround || wallSliding) {
+    frame = 3;
+  } else if (Math.abs(player.vx) > 0.2) {
+    frame = Math.floor(performance.now() / 120) % 2 + 1;
   }
+
+  const cropX = frame * frameWidth + frameWidth * 0.10;
+  const cropY = frameHeight * 0.04;
+  const cropW = frameWidth * 0.80;
+  const cropH = frameHeight * 0.92;
+
+  ctx.drawImage(
+    sprite,
+    cropX, cropY,
+    cropW, cropH,
+    -drawWidth / 2, -drawHeight / 2,
+    drawWidth, drawHeight
+  );
+} else {
+  ctx.fillStyle = "#1f2937";
+  ctx.fillRect(-12, -14, 24, 28);
+  ctx.fillStyle = "#22d3ee";
+  ctx.fillRect(-8, -4, 16, 4);
+}
+
+// draw scarf on top
+drawScarf();
 
   ctx.restore();
 }
