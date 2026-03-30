@@ -232,6 +232,8 @@ let isDashing = false;
 let dashTimer = 0;
 let currentTheme = "cyan";
 let dashOrbs = [];
+let orbPickupParticles = [];
+let dashTrailParticles = [];
 
 bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
 
@@ -277,6 +279,16 @@ function playWallJumpSound() {
 
 function playDeathSound() {
   playTone(220, 0.12, "sawtooth", 0.04);
+}
+
+function playOrbPickupSound() {
+  playTone(740, 0.05, "triangle", 0.03);
+  setTimeout(() => playTone(980, 0.05, "triangle", 0.025), 45);
+}
+
+function playDashSound() {
+  playTone(300, 0.04, "square", 0.03);
+  setTimeout(() => playTone(220, 0.05, "square", 0.025), 35);
 }
 
 function playWinSound() {
@@ -564,6 +576,43 @@ function spawnCelebration(x, y) {
   }
 }
 
+function spawnOrbPickupParticles(x, y) {
+  const colors = ["#fb923c", "#fdba74", "#fff7ed", "#f472b6"];
+
+  for (let i = 0; i < 16; i++) {
+    const angle = (Math.PI * 2 * i) / 16;
+    const speed = 1.5 + Math.random() * 2;
+
+    orbPickupParticles.push({
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 20 + Math.random() * 12,
+      maxLife: 32,
+      size: 4 + Math.floor(Math.random() * 3),
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+}
+
+function spawnDashTrailParticle(x, y) {
+  const colors = currentTheme === "magenta"
+    ? ["#f472b6", "#fb7185", "#f9a8d4", "#22d3ee"]
+    : ["#22d3ee", "#a855f7", "#c084fc", "#67e8f9"];
+
+  dashTrailParticles.push({
+    x,
+    y,
+    vx: (Math.random() - 0.5) * 0.8,
+    vy: (Math.random() - 0.5) * 0.8,
+    life: 10 + Math.random() * 6,
+    maxLife: 16,
+    size: 5 + Math.floor(Math.random() * 3),
+    color: colors[Math.floor(Math.random() * colors.length)]
+  });
+}
+
 function updateCelebration() {
   for (const p of celebrationParticles) {
     p.x += p.vx;
@@ -653,7 +702,9 @@ function loadLevel(index) {
   wallSliding = false;
 
   levelEnding = false;
-  celebrationParticles = [];
+celebrationParticles = [];
+orbPickupParticles = [];
+dashTrailParticles = [];
 
   levelStartTime = performance.now();
   currentTime = 0;
@@ -675,6 +726,28 @@ function updateTimer() {
   }
 }
 
+function updateOrbPickupParticles() {
+  for (const p of orbPickupParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.96;
+    p.vy *= 0.96;
+    p.life -= 1;
+  }
+
+  orbPickupParticles = orbPickupParticles.filter(p => p.life > 0);
+}
+
+function updateDashTrailParticles() {
+  for (const p of dashTrailParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life -= 1;
+  }
+
+  dashTrailParticles = dashTrailParticles.filter(p => p.life > 0);
+}
+
 function updatePlayer() {
   if (levelEnding) return;
 
@@ -688,6 +761,13 @@ function updatePlayer() {
       isDashing = false;
     }
   }
+
+  if (isDashing) {
+  spawnDashTrailParticle(
+    player.x + player.width / 2 + (Math.random() - 0.5) * 8,
+    player.y + player.height / 2 + (Math.random() - 0.5) * 10
+  );
+}
 
   // Horizontal input
   if (!isDashing) {
@@ -896,6 +976,34 @@ function updatePlayer() {
   }
 }
 
+function drawOrbPickupParticles() {
+  for (const p of orbPickupParticles) {
+    const alpha = p.life / p.maxLife;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = p.color;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+    ctx.restore();
+  }
+}
+
+function drawDashTrailParticles() {
+  for (const p of dashTrailParticles) {
+    const alpha = p.life / p.maxLife;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = p.color;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+    ctx.restore();
+  }
+}
+
 function drawDashOrbs() {
   for (const orb of dashOrbs) {
     if (orb.collected) continue;
@@ -1093,21 +1201,25 @@ function drawExitPortal() {
   ctx.restore();
 }
 
-   function draw() {
+  function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBackground();
   drawPlatforms();
   drawSpikes();
   drawDashOrbs();
   drawExitPortal();
+  drawDashTrailParticles();
+  drawOrbPickupParticles();
   drawCelebration();
   drawPlayer();
 }
 
-   function gameLoop() {
+  function gameLoop() {
   updateTimer();
   updatePlayer();
   updateCelebration();
+  updateOrbPickupParticles();
+  updateDashTrailParticles();
   draw();
   requestAnimationFrame(gameLoop);
 }
@@ -1123,14 +1235,15 @@ function drawExitPortal() {
   if (key === "d" || event.key === "ArrowRight") keys.right = true;
 
   if ((key === "x" || event.key === "Shift") && dashCharges > 0 && !onGround && !isDashing) {
-    dashCharges = 0;
-    dashText.textContent = dashCharges;
-    isDashing = true;
-    dashTimer = 10;
-    player.vy = 0;
-    player.vx = player.facing * 10;
-    statusText.textContent = "Dash!";
-  }
+  dashCharges = 0;
+  dashText.textContent = dashCharges;
+  isDashing = true;
+  dashTimer = 10;
+  player.vy = 0;
+  player.vx = player.facing * 10;
+  statusText.textContent = "Dash!";
+  playDashSound();
+}
 
   if (key === "w" || key === " " || event.key === "ArrowUp") {
     getAudioContext();
