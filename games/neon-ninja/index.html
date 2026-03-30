@@ -1574,7 +1574,12 @@ if (antiCheatRoofActive && antiCheatRoof) {
       if (player.x <= 0) touchingWallLeft = true;
       if (player.x + player.width >= canvas.width) touchingWallRight = true;
 
-      if (!onGround && player.vy > 0 && (touchingWallLeft || touchingWallRight)) {
+      if (
+  !onGround &&
+  player.vy > 0 &&
+  (touchingWallLeft || touchingWallRight) &&
+  Math.abs(player.vx) > 0.3 // 🔥 important fix
+) {
         wallSliding = true;
         if (player.vy > 2) player.vy = 2;
 
@@ -1892,11 +1897,11 @@ if (antiCheatRoofActive && antiCheatRoof) {
     function drawPlayer() {
   const sprite = processedNinjaSprite || ninjaSprite;
 
-  const drawWidth = 52;
-  const drawHeight = 72;
+  const drawWidth = 44;
+const drawHeight = 60;
 
   ctx.save();
-  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 6);
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 10);
 
   if (player.facing < 0) {
     ctx.scale(-1, 1);
