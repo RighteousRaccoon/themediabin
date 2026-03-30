@@ -69,6 +69,12 @@
       opacity: 0.95;
     }
 
+    select.button {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
     canvas {
       background: linear-gradient(180deg, #020617, #111827);
       border: 1px solid #334155;
@@ -113,6 +119,20 @@
   <button class="button" id="resetButton">Reset Level</button>
   <button class="button" id="soundButton">Sound: On</button>
   <div class="scoreboard">Controls: A/D + Space</div>
+  <select id="levelSelect" class="button">
+  <option value="0">Level 1</option>
+  <option value="1">Level 2</option>
+  <option value="2">Level 3</option>
+  <option value="3">Level 4</option>
+  <option value="4">Level 5</option>
+  <option value="5">Level 6</option>
+  <option value="6">Level 7</option>
+  <option value="7">Level 8</option>
+  <option value="8">Level 9</option>
+  <option value="9">Level 10</option>
+</select>
+
+<button class="button" id="goLevelButton">Go</button>
 </div>
 
       <canvas id="game" width="900" height="500"></canvas>
@@ -141,6 +161,8 @@ const bestTimeText = document.getElementById("bestTimeText");
 const levelText = document.getElementById("levelText");
 const soundButton = document.getElementById("soundButton");
 const dashText = document.getElementById("dashText");
+const levelSelect = document.getElementById("levelSelect");
+const goLevelButton = document.getElementById("goLevelButton");
 
     const ninjaSprite = new Image();
     ninjaSprite.src = "/games/assets/ninja.png";
@@ -638,7 +660,8 @@ function loadLevel(index) {
   timerText.textContent = "0.000s";
 
   levelText.textContent = String(index + 1);
-  statusText.textContent = "Ready";
+levelSelect.value = String(index);
+statusText.textContent = "Ready";
 }
 
     function resetLevel() {
@@ -1103,6 +1126,16 @@ function drawExitPortal() {
   player.vy = 0;
   player.vx = player.facing * 10;
   statusText.textContent = "Dash!";
+
+  if (key >= "1" && key <= "9") {
+  currentLevel = Number(key) - 1;
+  loadLevel(currentLevel);
+}
+
+if (key === "0") {
+  currentLevel = 9;
+  loadLevel(currentLevel);
+}
 }
 
   if (key === "w" || key === " " || event.key === "ArrowUp") {
@@ -1142,6 +1175,11 @@ function drawExitPortal() {
       if (key === "d" || event.key === "ArrowRight") keys.right = false;
     });
 
+goLevelButton.addEventListener("click", () => {
+  const selectedLevel = Number(levelSelect.value);
+  currentLevel = selectedLevel;
+  loadLevel(currentLevel);
+});
     resetButton.addEventListener("click", resetLevel);
     soundButton.addEventListener("click", () => {
   soundEnabled = !soundEnabled;
