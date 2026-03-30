@@ -629,16 +629,18 @@ function updateDeathParticles() {
   deathParticles = deathParticles.filter(p => p.life > 0);
 }
 
-function updateDeathParticles() {
+function drawDeathParticles() {
   for (const p of deathParticles) {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vx *= 0.96;
-    p.vy *= 0.96;
-    p.life -= 1;
-  }
+    const alpha = p.life / p.maxLife;
 
-  deathParticles = deathParticles.filter(p => p.life > 0);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = p.color;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+    ctx.restore();
+  }
 }
 
 function spawnOrbPickupParticles(x, y) {
@@ -1394,13 +1396,6 @@ window.addEventListener("mousedown", () => {
   if (document.activeElement) {
     document.activeElement.blur();
   }
-});
-
-goLevelButton.addEventListener("click", () => {
-  const selectedLevel = Number(levelSelect.value);
-  currentLevel = selectedLevel;
-  loadLevel(currentLevel);
-  goLevelButton.blur();
 });
 
 resetButton.addEventListener("click", () => {
