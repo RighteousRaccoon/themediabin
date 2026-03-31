@@ -469,13 +469,18 @@
     const skinText = document.getElementById("skinText");
     const skinButton = document.getElementById("skinButton");
 
-    const ninjaSprite = new Image();
-    ninjaSprite.src = "/games/assets/ninja.png?v=2";
-    let processedNinjaSprite = null;
+   const ninjaSprite = new Image();
+ninjaSprite.src = "/games/assets/ninja.png?v=6";
+let processedNinjaSprite = null;
 
-    ninjaSprite.onload = () => {
-      processedNinjaSprite = ninjaSprite;
-    };
+ninjaSprite.onload = () => {
+  console.log("ninja sprite loaded", ninjaSprite.width, ninjaSprite.height);
+  processedNinjaSprite = ninjaSprite;
+};
+
+ninjaSprite.onerror = () => {
+  console.error("failed to load ninja sprite:", ninjaSprite.src);
+};
 
     const gravity = 0.48;
     const maxFallSpeed = 7.8;
