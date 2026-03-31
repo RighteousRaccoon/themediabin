@@ -683,6 +683,8 @@ function loadCurrentSkinSprite() {
     let musicStarted = false;
     let musicStep = 0;
     let musicInterval = null;
+    let musicBar = 0;
+    let musicVariant = 0;
     let dashCharges = 0;
     let isDashing = false;
     let dashTimer = 0;
@@ -857,30 +859,32 @@ function loadCurrentSkinSprite() {
   ]
 },
   {
-    name: "Level 6",
-    theme: "magenta",
-    playerStart: { x: 70, y: 432 },
-    portal: { x: 955, y: 205, width: 24, height: 48 },
-    antiCheatPlatform: { x: 935, y: 240, width: 130, height: 18 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1025, yMax: 275 },
-    antiCheatRoofTrigger: { yMax: 55 },
-    dashOrbs: [{ x: 500, y: 300, radius: 12 }],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 80, y: 460, width: 100, height: 20 },
-      { x: 300, y: 390, width: 120, height: 20 },
-      { x: 575, y: 285, width: 120, height: 20 },
-      { x: 840, y: 245, width: 120, height: 20 },
-      { x: 450, y: 250, width: 20, height: 170 }
-    ],
-    spikes: [
-      { x: 220, y: 490, width: 60, height: 20 },
-      { x: 500, y: 490, width: 60, height: 20 },
-      { x: 790, y: 490, width: 60, height: 20 },
-      { x: 360, y: 370, width: 40, height: 20 }
-    ]
-  },
+  name: "Level 6",
+  theme: "magenta",
+  playerStart: { x: 70, y: 432 },
+  portal: { x: 955, y: 205, width: 24, height: 48 },
+  antiCheatPlatform: { x: 935, y: 240, width: 130, height: 18 },
+  antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+  antiCheatTrigger: { xMin: 1025, yMax: 275 },
+  antiCheatRoofTrigger: { yMax: 55 },
+  dashOrbs: [{ x: 480, y: 315, radius: 12 }],
+  saws: [],
+  lifts: [],
+  platforms: [
+    { x: 0, y: 510, width: 1100, height: 40 },
+    { x: 80, y: 460, width: 130, height: 20 },
+    { x: 265, y: 405, width: 145, height: 20 },
+    { x: 555, y: 300, width: 130, height: 20 },
+    { x: 835, y: 245, width: 125, height: 20 },
+    { x: 445, y: 255, width: 20, height: 170 }
+  ],
+  spikes: [
+    { x: 225, y: 490, width: 55, height: 20 },
+    { x: 505, y: 490, width: 55, height: 20 },
+    { x: 790, y: 490, width: 55, height: 20 },
+    { x: 355, y: 385, width: 35, height: 20 }
+  ]
+},
   {
     name: "Level 7",
     theme: "magenta",
@@ -1000,7 +1004,7 @@ function loadCurrentSkinSprite() {
   },
 {
   name: "Level 11",
-  theme: "cyan",
+  theme: "ember",
   playerStart: { x: 70, y: 432 },
   portal: { x: 970, y: 120, width: 24, height: 48 },
   antiCheatPlatform: { x: 950, y: 155, width: 115, height: 16 },
@@ -1029,7 +1033,7 @@ function loadCurrentSkinSprite() {
 },
 {
   name: "Level 12",
-  theme: "cyan",
+  theme: "ember",
   playerStart: { x: 70, y: 432 },
   portal: { x: 960, y: 105, width: 24, height: 48 },
   antiCheatPlatform: { x: 940, y: 140, width: 120, height: 16 },
@@ -1059,7 +1063,7 @@ function loadCurrentSkinSprite() {
 },
 {
   name: "Level 13",
-  theme: "magenta",
+  theme: "ember",
   playerStart: { x: 70, y: 432 },
   portal: { x: 990, y: 95, width: 24, height: 48 },
   antiCheatPlatform: { x: 965, y: 130, width: 115, height: 16 },
@@ -1091,7 +1095,7 @@ function loadCurrentSkinSprite() {
 },
 {
   name: "Level 14",
-  theme: "magenta",
+  theme: "ember",
   playerStart: { x: 60, y: 432 },
   portal: { x: 1000, y: 85, width: 24, height: 48 },
   antiCheatPlatform: { x: 975, y: 120, width: 110, height: 16 },
@@ -1124,7 +1128,7 @@ function loadCurrentSkinSprite() {
 },
 {
   name: "Level 15",
-  theme: "magenta",
+  theme: "ember",
   playerStart: { x: 60, y: 432 },
   portal: { x: 1010, y: 70, width: 24, height: 48 },
   antiCheatPlatform: { x: 980, y: 105, width: 105, height: 16 },
@@ -1366,36 +1370,102 @@ function playNote(frequency, duration, type = "sine", volume = 0.02, when = 0) {
 function playBackgroundStep() {
   if (!soundEnabled) return;
 
-  const bassLine = [110, 110, 82.41, 82.41, 98, 98, 82.41, 82.41];
-  const leadLine = [659.25, 783.99, 659.25, 587.33, 523.25, 587.33, 659.25, 493.88];
-  const arpLine  = [1318.51, 1567.98, 1174.66, 987.77, 1046.5, 1174.66, 1318.51, 987.77];
+  const levelGroup =
+    currentLevel < 5 ? "cyan" :
+    currentLevel < 10 ? "magenta" :
+    currentLevel < 15 ? "ember" :
+    "neonGreen";
 
   const step = musicStep % 8;
+  const barStep = musicBar % 4;
 
-  playNote(bassLine[step], 0.22, "sawtooth", 0.018);
+  let bassLine;
+  let leadLine;
+  let arpLine;
+
+  if (levelGroup === "cyan") {
+    bassLine = barStep < 2
+      ? [110, 110, 82.41, 82.41, 98, 98, 82.41, 82.41]
+      : [110, 110, 98, 98, 123.47, 123.47, 98, 98];
+
+    leadLine = musicVariant === 0
+      ? [659.25, 783.99, 659.25, 587.33, 523.25, 587.33, 659.25, 493.88]
+      : [659.25, 739.99, 783.99, 659.25, 587.33, 523.25, 587.33, 493.88];
+
+    arpLine = [1318.51, 1567.98, 1174.66, 987.77, 1046.5, 1174.66, 1318.51, 987.77];
+  } else if (levelGroup === "magenta") {
+    bassLine = barStep < 2
+      ? [92.5, 92.5, 69.3, 69.3, 82.41, 82.41, 69.3, 69.3]
+      : [92.5, 92.5, 82.41, 82.41, 98, 98, 82.41, 82.41];
+
+    leadLine = musicVariant === 0
+      ? [523.25, 659.25, 698.46, 659.25, 587.33, 523.25, 466.16, 523.25]
+      : [523.25, 587.33, 659.25, 698.46, 659.25, 587.33, 523.25, 466.16];
+
+    arpLine = [1046.5, 1174.66, 1396.91, 1174.66, 987.77, 1046.5, 1174.66, 987.77];
+  } else if (levelGroup === "ember") {
+    bassLine = barStep < 2
+      ? [87.31, 87.31, 77.78, 77.78, 65.41, 65.41, 77.78, 77.78]
+      : [87.31, 87.31, 65.41, 65.41, 98, 98, 77.78, 77.78];
+
+    leadLine = musicVariant === 0
+      ? [392, 493.88, 523.25, 587.33, 523.25, 493.88, 392, 349.23]
+      : [392, 440, 493.88, 523.25, 587.33, 523.25, 440, 349.23];
+
+    arpLine = [784, 987.77, 1046.5, 1174.66, 1046.5, 987.77, 784, 698.46];
+  } else {
+    bassLine = barStep < 2
+      ? [98, 98, 123.47, 123.47, 146.83, 146.83, 123.47, 123.47]
+      : [98, 98, 110, 110, 123.47, 123.47, 146.83, 146.83];
+
+    leadLine = musicVariant === 0
+      ? [783.99, 880, 987.77, 1174.66, 987.77, 880, 783.99, 659.25]
+      : [783.99, 987.77, 1174.66, 987.77, 880, 783.99, 659.25, 587.33];
+
+    arpLine = [1567.98, 1760, 1975.53, 1760, 1567.98, 1480, 1318.51, 1174.66];
+  }
+
+  playNote(bassLine[step], 0.22, "sawtooth", 0.016);
 
   if (step % 2 === 0) {
-    playNote(55, 0.08, "sine", 0.035);
+    playNote(55, 0.08, "sine", 0.03);
   }
 
   if (step === 2 || step === 6) {
-    playNote(220, 0.03, "square", 0.012);
-    playNote(330, 0.02, "triangle", 0.008, 0.01);
+    playNote(220, 0.03, "square", 0.01);
+    playNote(330, 0.02, "triangle", 0.007, 0.01);
+  }
+
+  if (step === 7 && barStep === 3) {
+    playNote(180, 0.025, "square", 0.01);
+    playNote(240, 0.025, "square", 0.008, 0.03);
+    playNote(320, 0.02, "triangle", 0.007, 0.06);
   }
 
   if (step === 1 || step === 3 || step === 5 || step === 7) {
-    playNote(leadLine[step], 0.16, "triangle", 0.012, 0.02);
+    playNote(leadLine[step], 0.15, "triangle", 0.011, 0.02);
   }
 
-  playNote(arpLine[step], 0.08, "square", 0.006, 0.04);
+  if (step !== 4 || musicVariant === 1) {
+    playNote(arpLine[step], 0.08, "square", 0.005, 0.045);
+  }
 
   musicStep++;
+
+  if (musicStep % 8 === 0) {
+    musicBar++;
+    if (musicBar % 4 === 0) {
+      musicVariant = (musicVariant + 1) % 2;
+    }
+  }
 }
 
 function startBackgroundMusic() {
   if (musicStarted) return;
   musicStarted = true;
   musicStep = 0;
+  musicBar = 0;
+  musicVariant = 0;
   musicInterval = setInterval(playBackgroundStep, 250);
 }
 
@@ -2196,82 +2266,112 @@ function stopBackgroundMusic() {
     }
 
     function drawBackground() {
-      if (currentTheme === "magenta") {
-        const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        bg.addColorStop(0, "#1a0b2e");
-        bg.addColorStop(1, "#0f172a");
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "rgba(244, 114, 182, 0.18)";
-      } else {
-        ctx.fillStyle = "rgba(147, 197, 253, 0.15)";
-      }
+  if (currentTheme === "magenta") {
+    const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bg.addColorStop(0, "#1a0b2e");
+    bg.addColorStop(1, "#0f172a");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(244, 114, 182, 0.18)";
+  } else if (currentTheme === "ember") {
+    const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bg.addColorStop(0, "#2a0f0a");
+    bg.addColorStop(0.55, "#3b1410");
+    bg.addColorStop(1, "#120a0a");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(251, 146, 60, 0.16)";
+  } else if (currentTheme === "neonGreen") {
+    const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bg.addColorStop(0, "#03130b");
+    bg.addColorStop(0.55, "#052e1a");
+    bg.addColorStop(1, "#020617");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(74, 222, 128, 0.16)";
+  } else {
+    ctx.fillStyle = "rgba(147, 197, 253, 0.15)";
+  }
 
-      for (let i = 0; i < 40; i++) {
-        const x = (i * 173) % canvas.width;
-        const y = (i * 97) % 220;
-        ctx.fillRect(x, y, 2, 2);
-      }
-    }
+  for (let i = 0; i < 40; i++) {
+    const x = (i * 173) % canvas.width;
+    const y = (i * 97) % 220;
+    ctx.fillRect(x, y, 2, 2);
+  }
+}
 
     function drawPlatforms() {
-      const topColor = currentTheme === "magenta" ? "#f472b6" : "#22d3ee";
-      const baseColor = currentTheme === "magenta" ? "#312e81" : "#1f2937";
-      const highlightColor = currentTheme === "magenta" ? "#4338ca" : "#374151";
+  let topColor = "#22d3ee";
+  let baseColor = "#1f2937";
+  let highlightColor = "#374151";
 
-      for (const platform of platforms) {
-        ctx.fillStyle = baseColor;
-        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-        ctx.fillStyle = topColor;
-        ctx.fillRect(platform.x, platform.y, platform.width, 4);
-        ctx.fillStyle = highlightColor;
-        ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
-      }
+  if (currentTheme === "magenta") {
+    topColor = "#f472b6";
+    baseColor = "#312e81";
+    highlightColor = "#4338ca";
+  } else if (currentTheme === "ember") {
+    topColor = "#fb923c";
+    baseColor = "#3f1d12";
+    highlightColor = "#7c2d12";
+  } else if (currentTheme === "neonGreen") {
+    topColor = "#4ade80";
+    baseColor = "#052e16";
+    highlightColor = "#166534";
+  }
 
-      if (antiCheatPlatformActive && antiCheatPlatform) {
-        const flickerPhase = antiCheatFlickerTimer > 0
-          ? Math.floor(performance.now() / 40) % 2 === 0
-          : true;
+  for (const platform of platforms) {
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+    ctx.fillStyle = topColor;
+    ctx.fillRect(platform.x, platform.y, platform.width, 4);
+    ctx.fillStyle = highlightColor;
+    ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
+  }
 
-        if (flickerPhase) {
-          ctx.save();
-          ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
-          ctx.shadowColor = "#fb7185";
+  if (antiCheatPlatformActive && antiCheatPlatform) {
+    const flickerPhase = antiCheatFlickerTimer > 0
+      ? Math.floor(performance.now() / 40) % 2 === 0
+      : true;
 
-          ctx.fillStyle = "#3f0d1b";
-          ctx.fillRect(antiCheatPlatform.x, antiCheatPlatform.y, antiCheatPlatform.width, antiCheatPlatform.height);
+    if (flickerPhase) {
+      ctx.save();
+      ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
+      ctx.shadowColor = "#fb7185";
 
-          ctx.fillStyle = "#f43f5e";
-          ctx.fillRect(antiCheatPlatform.x, antiCheatPlatform.y, antiCheatPlatform.width, 4);
+      ctx.fillStyle = "#3f0d1b";
+      ctx.fillRect(antiCheatPlatform.x, antiCheatPlatform.y, antiCheatPlatform.width, antiCheatPlatform.height);
 
-          ctx.fillStyle = "#fb7185";
-          ctx.fillRect(antiCheatPlatform.x + 4, antiCheatPlatform.y + 6, antiCheatPlatform.width - 8, 4);
-          ctx.restore();
-        }
-      }
+      ctx.fillStyle = "#f43f5e";
+      ctx.fillRect(antiCheatPlatform.x, antiCheatPlatform.y, antiCheatPlatform.width, 4);
 
-      if (antiCheatRoofActive && antiCheatRoof) {
-        const flickerPhase = antiCheatFlickerTimer > 0
-          ? Math.floor(performance.now() / 40) % 2 === 0
-          : true;
-
-        if (flickerPhase) {
-          ctx.save();
-          ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
-          ctx.shadowColor = "#fb7185";
-
-          ctx.fillStyle = "#3f0d1b";
-          ctx.fillRect(antiCheatRoof.x, antiCheatRoof.y, antiCheatRoof.width, antiCheatRoof.height);
-
-          ctx.fillStyle = "#f43f5e";
-          ctx.fillRect(antiCheatRoof.x, antiCheatRoof.y, antiCheatRoof.width, 4);
-
-          ctx.fillStyle = "#fb7185";
-          ctx.fillRect(antiCheatRoof.x + 4, antiCheatRoof.y + 6, antiCheatRoof.width - 8, 4);
-          ctx.restore();
-        }
-      }
+      ctx.fillStyle = "#fb7185";
+      ctx.fillRect(antiCheatPlatform.x + 4, antiCheatPlatform.y + 6, antiCheatPlatform.width - 8, 4);
+      ctx.restore();
     }
+  }
+
+  if (antiCheatRoofActive && antiCheatRoof) {
+    const flickerPhase = antiCheatFlickerTimer > 0
+      ? Math.floor(performance.now() / 40) % 2 === 0
+      : true;
+
+    if (flickerPhase) {
+      ctx.save();
+      ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
+      ctx.shadowColor = "#fb7185";
+
+      ctx.fillStyle = "#3f0d1b";
+      ctx.fillRect(antiCheatRoof.x, antiCheatRoof.y, antiCheatRoof.width, antiCheatRoof.height);
+
+      ctx.fillStyle = "#f43f5e";
+      ctx.fillRect(antiCheatRoof.x, antiCheatRoof.y, antiCheatRoof.width, 4);
+
+      ctx.fillStyle = "#fb7185";
+      ctx.fillRect(antiCheatRoof.x + 4, antiCheatRoof.y + 6, antiCheatRoof.width - 8, 4);
+      ctx.restore();
+    }
+  }
+}
 
     function getSawPosition(saw) {
   const t = performance.now() * 0.001 * (saw.speed || 1);
@@ -2293,8 +2393,13 @@ function drawSaws() {
     ctx.translate(pos.x, pos.y);
     ctx.rotate(spin);
 
+    let glow = "#94a3b8";
+    if (currentTheme === "magenta") glow = "#fb7185";
+    if (currentTheme === "ember") glow = "#f97316";
+    if (currentTheme === "neonGreen") glow = "#4ade80";
+
     ctx.shadowBlur = 10;
-    ctx.shadowColor = currentTheme === "magenta" ? "#fb7185" : "#94a3b8";
+    ctx.shadowColor = glow;
 
     for (let i = 0; i < 8; i++) {
       ctx.rotate(Math.PI / 4);
