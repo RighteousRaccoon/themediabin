@@ -590,17 +590,13 @@ let processedNinjaSprite = null;
 
 function loadCurrentSkinSprite() {
   processedNinjaSprite = null;
-  ninjaSprite.src = skinSpritePaths[selectedSkin] || skinSpritePaths.default;
+
+  ninjaSprite.src = ""; // 🔥 force reset first
+
+  setTimeout(() => {
+    ninjaSprite.src = skinSpritePaths[selectedSkin] + "?v=" + Date.now();
+  }, 0);
 }
-
-ninjaSprite.onload = () => {
-  processedNinjaSprite = ninjaSprite;
-  console.log("loaded skin sprite:", selectedSkin, ninjaSprite.width, ninjaSprite.height);
-};
-
-ninjaSprite.onerror = () => {
-  console.error("failed to load ninja sprite:", ninjaSprite.src);
-};
 
     const gravity = 0.48;
     const maxFallSpeed = 7.8;
@@ -2287,9 +2283,23 @@ function updateDashUI() {
     });
 
     skinButton.addEventListener("click", () => {
-      cycleSkin();
-      skinButton.blur();
-    });
+  const previousSkin = selectedSkin;
+
+  cycleSkin();
+
+  if (selectedSkin === "gold") {
+    addScreenShake(5);
+    playTone(900, 0.06, "triangle", 0.04);
+  } else if (selectedSkin === "neon") {
+    addScreenShake(3);
+    playTone(800, 0.05, "triangle", 0.03);
+  } else {
+    addScreenShake(2);
+    playTone(700, 0.05, "triangle", 0.03);
+  }
+
+  skinButton.blur();
+});
 
     if (goLevelButton && levelSelect) {
       goLevelButton.addEventListener("click", () => {
