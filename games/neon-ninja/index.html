@@ -249,6 +249,52 @@
       border: 1px solid rgba(148, 163, 184, 0.3);
       backdrop-filter: blur(2px);
     }
+    .achievement-toast {
+  position: fixed;
+  right: 24px;
+  top: 24px;
+  min-width: 260px;
+  max-width: 360px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.94);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+  color: white;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-12px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.achievement-toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.achievement-toast-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #67e8f9;
+  margin-bottom: 6px;
+}
+
+.achievement-toast-body {
+  color: #e2e8f0;
+  line-height: 1.4;
+  font-size: 0.94rem;
+}
+
+@media (max-width: 900px) {
+  .achievement-toast {
+    right: 12px;
+    left: 12px;
+    top: 12px;
+    min-width: 0;
+    max-width: none;
+  }
+}
 
     .controls {
       margin-top: 16px;
@@ -380,6 +426,12 @@
     <p>Precision platformer prototype.</p>
 
     <div class="game-box" id="gameBox">
+
+      <div id="achievementToast" class="achievement-toast">
+  <div id="achievementToastTitle" class="achievement-toast-title">Achievement Unlocked!</div>
+  <div id="achievementToastBody" class="achievement-toast-body">You unlocked something.</div>
+</div>
+
       <div class="hud">
         <div class="scoreboard">Level: <span id="levelText">1</span></div>
         <div class="scoreboard">Status: <span id="statusText">Ready</span></div>
@@ -468,6 +520,9 @@
     const fullscreenButton = document.getElementById("fullscreenButton");
     const skinText = document.getElementById("skinText");
     const skinButton = document.getElementById("skinButton");
+    const achievementToast = document.getElementById("achievementToast");
+const achievementToastTitle = document.getElementById("achievementToastTitle");
+const achievementToastBody = document.getElementById("achievementToastBody");
 
    const ninjaSprite = new Image();
 ninjaSprite.src = "/games/assets/ninja_fixed_aligned.png?v=1";
@@ -569,6 +624,7 @@ ninjaSprite.onerror = () => {
     let antiCheatPlatformTimer = 0;
     let antiCheatRoofActive = false;
     let antiCheatRoofTimer = 0;
+    let achievementToastTimer = null;
 
     bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
 
@@ -915,18 +971,53 @@ ninjaSprite.onerror = () => {
     }
 
     function unlockAchievement(key) {
-      if (!achievements[key]) {
-        achievements[key] = true;
-        saveAchievements();
-        updateSkinUI();
-      }
-    }
+  if (achievements[key]) return;
+
+  achievements[key] = true;
+  saveAchievements();
+  updateSkinUI();
+
+  if (key === "beatLevel3") {
+    showAchievementToast(
+      "Achievement Unlocked!",
+      "Beat Level 3 — Blue Skin unlocked."
+    );
+  } else if (key === "sub10Level1") {
+    showAchievementToast(
+      "Achievement Unlocked!",
+      "Beat Level 1 under 10s — Neon Skin unlocked."
+    );
+  } else if (key === "beatAllLevels") {
+    showAchievementToast(
+      "Achievement Unlocked!",
+      "Beat all levels — Gold Skin unlocked."
+    );
+  }
+}
 
     function checkAchievementsOnLevelComplete() {
       if (currentLevel === 0 && currentTime < 10) unlockAchievement("sub10Level1");
       if (currentLevel === 2) unlockAchievement("beatLevel3");
       if (currentLevel === levels.length - 1) unlockAchievement("beatAllLevels");
     }
+
+    function showAchievementToast(title, body) {
+  if (!achievementToast || !achievementToastTitle || !achievementToastBody) return;
+
+  achievementToastTitle.textContent = title;
+  achievementToastBody.textContent = body;
+
+  achievementToast.classList.add("show");
+playAchievementSound();
+
+  if (achievementToastTimer) {
+    clearTimeout(achievementToastTimer);
+  }
+
+  achievementToastTimer = setTimeout(() => {
+    achievementToast.classList.remove("show");
+  }, 2600);
+}
 
     function getAudioContext() {
       if (!audioContext) {
@@ -959,6 +1050,11 @@ ninjaSprite.onerror = () => {
       gainNode.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + duration);
       oscillator.stop(ac.currentTime + duration);
     }
+
+    function playAchievementSound() {
+  playTone(880, 0.05, "triangle", 0.03);
+  setTimeout(() => playTone(1175, 0.06, "triangle", 0.025), 55);
+}
 
     function playJumpSound() {
       playTone(520, 0.06, "square", 0.025);
