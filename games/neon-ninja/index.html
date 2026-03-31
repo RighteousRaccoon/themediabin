@@ -654,6 +654,15 @@ const sfxVolumeSlider = document.getElementById("sfxVolumeSlider");
 const ninjaSprite = new Image();
 let processedNinjaSprite = null;
 
+const MUSIC_VOLUME_KEY = "neonNinjaMusicVolume";
+const SFX_VOLUME_KEY = "neonNinjaSfxVolume";
+
+let musicVolume = Number(localStorage.getItem(MUSIC_VOLUME_KEY));
+if (Number.isNaN(musicVolume)) musicVolume = 0.45;
+
+let sfxVolume = Number(localStorage.getItem(SFX_VOLUME_KEY));
+if (Number.isNaN(sfxVolume)) sfxVolume = 0.7;
+
 const bgMusic = new Audio("/games/assets/neon-ninja/neon_ninja_theme.mp3");
 bgMusic.loop = true;
 bgMusic.preload = "auto";
@@ -669,10 +678,6 @@ function loadCurrentSkinSprite() {
   }, 0);
 }
 
-const bgMusic = new Audio("/games/assets/neon-ninja/neon_ninja_theme.mp3");
-bgMusic.loop = true;
-bgMusic.preload = "auto";
-bgMusic.volume = musicVolume;
 
     const gravity = 0.48;
     const maxFallSpeed = 7.8;
@@ -684,8 +689,7 @@ bgMusic.volume = musicVolume;
     const ACHIEVEMENTS_KEY = "neonNinjaAchievements";
 const SKIN_KEY = "neonNinjaSelectedSkin";
 const BEST_TIMES_KEY = "neonNinjaBestTimes";
-const MUSIC_VOLUME_KEY = "neonNinjaMusicVolume";
-const SFX_VOLUME_KEY = "neonNinjaSfxVolume";
+
 
 let bestTimes = JSON.parse(localStorage.getItem(BEST_TIMES_KEY)) || {};
 
@@ -735,7 +739,6 @@ achievements = { ...defaultAchievements, ...achievements };
     let celebrationParticles = [];
     let audioContext = null;
     let soundEnabled = true;
-    let newUnlock = key;
     let dashCharges = 0;
     let isDashing = false;
     let dashTimer = 0;
@@ -775,16 +778,7 @@ achievements = { ...defaultAchievements, ...achievements };
     let antiCheatRoofTimer = 0;
     let achievementToastTimer = null;
 
-    let musicVolume = Number(localStorage.getItem(MUSIC_VOLUME_KEY));
-if (Number.isNaN(musicVolume)) musicVolume = 0.45;
-
-let sfxVolume = Number(localStorage.getItem(SFX_VOLUME_KEY));
-if (Number.isNaN(sfxVolume)) sfxVolume = 0.7;
-
-    const levelKey = `level_${currentLevel}`;
-const levelBest = bestTimes[levelKey];
-
-bestTimeText.textContent = "--";
+    bestTimeText.textContent = "--";
 
 if (musicVolumeSlider) musicVolumeSlider.value = String(musicVolume);
 if (sfxVolumeSlider) sfxVolumeSlider.value = String(sfxVolume);
@@ -1439,11 +1433,11 @@ if (sfxVolumeSlider) sfxVolumeSlider.value = String(sfxVolume);
     saveSelectedSkin();
   }
 
-  if (selectedSkin === "ultimate" && achievements.unlockUltimate) {
-  skinText.textContent += " ✨";
-}
-
   skinText.textContent = skins[selectedSkin].name;
+  if (selectedSkin === "ultimate" && achievements.unlockUltimate) {
+    skinText.textContent += " ✨";
+  }
+
   updateSkinUnlockPanel();
   loadCurrentSkinSprite();
 }
@@ -1576,7 +1570,7 @@ function stopBackgroundMusic() {
 
       oscillator.type = type;
       oscillator.frequency.value = frequency;
-      gainNode.gain.value = volume;
+      gainNode.gain.value = volume * sfxVolume;
 
       oscillator.connect(gainNode);
       gainNode.connect(ac.destination);
@@ -1942,46 +1936,49 @@ function drawLiftParticles() {
     }
 
     function winLevel() {
-      if (levelEnding) return;
+  if (levelEnding) return;
 
-      levelEnding = true;
-      playWinSound();
-      addScreenShake(5);
-      statusText.textContent = "Level complete!";
+  levelEnding = true;
+  playWinSound();
+  addScreenShake(5);
+  statusText.textContent = "Level complete!";
 
-      const finalTime = currentTime;
-      if (bestTime === null || finalTime < bestTime) {
-        bestTime = finalTime;
-        localStorage.setItem("neonNinjaBestTime", bestTime);
-        bestTimeText.textContent = bestTime.toFixed(3) + "s";
-        statusText.textContent = "New best time!";
-      }
+  const finalTime = currentTime;
 
-      const levelKey = `level_${currentLevel}`;
+  if (bestTime === null || finalTime < bestTime) {
+    bestTime = finalTime;
+    localStorage.setItem("neonNinjaBestTime", bestTime);
+    statusText.textContent = "New best time!";
+  }
 
-if (!bestTimes[levelKey] || currentTime < bestTimes[levelKey]) {
-  bestTimes[levelKey] = currentTime;
-  localStorage.setItem(BEST_TIMES_KEY, JSON.stringify(bestTimes));
-}
+  const levelKey = `level_${currentLevel}`;
+  if (!bestTimes[levelKey] || finalTime < bestTimes[levelKey]) {
+    bestTimes[levelKey] = finalTime;
+    localStorage.setItem(BEST_TIMES_KEY, JSON.stringify(bestTimes));
+  }
 
-      spawnCelebration(exitPortal.x + exitPortal.width / 2, exitPortal.y + exitPortal.height / 2);
-      checkAchievementsOnLevelComplete();
+  bestTimeText.textContent = finalTime.toFixed(3) + "s";
+
+  spawnCelebration(exitPortal.x + exitPortal.width / 2, exitPortal.y + exitPortal.height / 2);
+  checkAchievementsOnLevelComplete();
+
+  setTimeout(() => {
+    if (currentLevel < levels.length - 1) {
+      currentLevel += 1;
+      loadLevel(currentLevel);
+    } else {
+      statusText.textContent = "You beat the game!";
 
       setTimeout(() => {
-        if (currentLevel < levels.length - 1) {
-          currentLevel += 1;
-          loadLevel(currentLevel);
-        } else {
-          statusText.textContent = "You beat the game!";
-
-setTimeout(() => {
-  showAchievementToast(
-    "Game Complete",
-    "You cleared all 20 levels. Absolute legend.",
-    "skin-ultimate"
-  );
-}, 300);
+        showAchievementToast(
+          "Game Complete",
+          "You cleared all 20 levels. Absolute legend.",
+          "skin-ultimate"
+        );
+      }, 300);
     }
+  }, 900);
+}
 
     function loadLevel(index) {
       const level = levels[index];
