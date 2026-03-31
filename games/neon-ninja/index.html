@@ -22,9 +22,9 @@
     }
 
     .wrapper {
-  width: min(1400px, 100%);
-  text-align: center;
-}
+      width: min(1400px, 100%);
+      text-align: center;
+    }
 
     h1 {
       margin-bottom: 10px;
@@ -37,14 +37,14 @@
     }
 
     .game-box {
-  position: relative;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid #1e293b;
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 16px 32px rgba(0,0,0,0.28);
-  width: 100%;
-}
+      position: relative;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.28);
+      width: 100%;
+    }
 
     .hud {
       display: flex;
@@ -80,24 +80,24 @@
     }
 
     canvas {
-  background: linear-gradient(180deg, #020617, #111827);
-  border: 1px solid #334155;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 1400px;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-  image-rendering: pixelated;
-  touch-action: none;
-}
+      background: linear-gradient(180deg, #020617, #111827);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 1400px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      image-rendering: pixelated;
+      touch-action: none;
+    }
 
-   .play-area {
-  position: relative;
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-}
+    .play-area {
+      position: relative;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
 
     .play-area:fullscreen {
       width: 100vw;
@@ -111,7 +111,7 @@
     }
 
     .play-area:fullscreen canvas {
-  width: min(100vw, calc((100vh - 10px) * 2));
+      width: min(100vw, calc((100vh - 8px) * 2));
       height: auto;
       max-width: 100vw;
       max-height: calc(100vh - 8px);
@@ -256,6 +256,13 @@
       line-height: 1.6;
     }
 
+    .achievements {
+      margin-top: 14px;
+      color: #cbd5e1;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
     .links {
       margin-top: 18px;
     }
@@ -329,7 +336,7 @@
       }
 
       .play-area:fullscreen canvas {
-  width: min(100vw, calc((100vh - 8px) * 2));
+        width: min(100vw, calc((100vh - 10px) * 2));
         max-height: calc(100vh - 10px);
       }
     }
@@ -337,14 +344,13 @@
     @media (max-width: 900px) {
       body:has(.play-area:fullscreen) .hud,
       body:has(.play-area:fullscreen) .controls,
+      body:has(.play-area:fullscreen) .achievements,
       body:has(.play-area:fullscreen) .links,
       body:has(.play-area:fullscreen) h1,
       body:has(.play-area:fullscreen) p {
         display: none;
       }
-    }
 
-    @media (max-width: 900px) {
       .mobile-controls {
         display: block;
       }
@@ -361,7 +367,8 @@
         justify-content: center;
       }
 
-      .controls {
+      .controls,
+      .achievements {
         font-size: 0.92rem;
       }
     }
@@ -379,8 +386,10 @@
         <div class="scoreboard">Dash: <span id="dashText">0</span></div>
         <div class="scoreboard">Time: <span id="timerText">0.000</span>s</div>
         <div class="scoreboard">Best: <span id="bestTimeText">--</span></div>
+        <div class="scoreboard">Skin: <span id="skinText">Default</span></div>
         <button class="button" id="resetButton" type="button">Reset Level</button>
         <button class="button" id="soundButton" type="button">Sound: On</button>
+        <button class="button" id="skinButton" type="button">Change Skin</button>
         <div class="scoreboard">Controls: A/D + Space</div>
 
         <select id="levelSelect" class="button">
@@ -401,6 +410,7 @@
 
       <div class="play-area" id="playArea">
         <canvas id="game" width="1100" height="550"></canvas>
+
         <button class="fullscreen-btn" id="fullscreenButton" type="button" aria-label="Toggle fullscreen">⛶</button>
 
         <div class="mobile-controls" id="mobileControls">
@@ -415,17 +425,24 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="controls">
-      Move: A / D or Arrow Keys<br />
-      Jump: Space / W / Arrow Up<br />
-      Dash: X / Shift<br />
-      Restart: R
-    </div>
+      <div class="controls">
+        Move: A / D or Arrow Keys<br />
+        Jump: Space / W / Arrow Up<br />
+        Dash: X / Shift<br />
+        Restart: R
+      </div>
 
-    <div class="links">
-      <a href="/games/">← Back to Games</a>
+      <div class="achievements">
+        Achievements:<br />
+        Beat Level 3 = Blue Skin<br />
+        Beat Level 1 under 10s = Neon Skin<br />
+        Beat All Levels = Gold Skin
+      </div>
+
+      <div class="links">
+        <a href="/games/">← Back to Games</a>
+      </div>
     </div>
   </div>
 
@@ -434,7 +451,6 @@
     const ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = false;
 
-    const gameBox = document.getElementById("gameBox");
     const playArea = document.getElementById("playArea");
     const statusText = document.getElementById("statusText");
     const resetButton = document.getElementById("resetButton");
@@ -450,44 +466,43 @@
     const stickZone = document.getElementById("stickZone");
     const stickKnob = document.getElementById("stickKnob");
     const fullscreenButton = document.getElementById("fullscreenButton");
+    const skinText = document.getElementById("skinText");
+    const skinButton = document.getElementById("skinButton");
 
     const ninjaSprite = new Image();
-    ninjaSprite.src = "/games/assets/ninja_v2.png";
+    ninjaSprite.src = "/games/assets/ninja.png?v=5";
     let processedNinjaSprite = null;
 
     ninjaSprite.onload = () => {
-      const off = document.createElement("canvas");
-      off.width = ninjaSprite.width;
-      off.height = ninjaSprite.height;
-      const offCtx = off.getContext("2d");
-      offCtx.imageSmoothingEnabled = false;
-      offCtx.drawImage(ninjaSprite, 0, 0);
-
-      const imageData = offCtx.getImageData(0, 0, off.width, off.height);
-      const data = imageData.data;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        if (r > 215 && g > 215 && b > 215) {
-          data[i + 3] = 0;
-        }
-      }
-
-      offCtx.putImageData(imageData, 0, 0);
-      processedNinjaSprite = off;
+      processedNinjaSprite = ninjaSprite;
     };
 
     const gravity = 0.48;
-    const moveSpeed = 0.8;
-    const maxSpeed = 4.2;
     const maxFallSpeed = 7.8;
     const friction = 0.8;
     const jumpPower = -10;
     const COYOTE_FRAMES = 8;
     const JUMP_BUFFER_FRAMES = 8;
+
+    const ACHIEVEMENTS_KEY = "neonNinjaAchievements";
+    const SKIN_KEY = "neonNinjaSelectedSkin";
+
+    const defaultAchievements = {
+      beatLevel3: false,
+      beatAllLevels: false,
+      sub10Level1: false
+    };
+
+    let achievements = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)) || { ...defaultAchievements };
+
+    const skins = {
+      default: { name: "Default", tint: null },
+      blue: { name: "Blue", tint: "rgba(56, 189, 248, 0.16)" },
+      neon: { name: "Neon", tint: "rgba(34, 211, 238, 0.16)" },
+      gold: { name: "Gold", tint: "rgba(245, 158, 11, 0.18)" }
+    };
+
+    let selectedSkin = localStorage.getItem(SKIN_KEY) || "default";
 
     const keys = {
       left: false,
@@ -496,7 +511,7 @@
 
     const player = {
       x: 80,
-      y: 380,
+      y: 430,
       vx: 0,
       vy: 0,
       width: 24,
@@ -530,29 +545,319 @@
     let wallSlideParticles = [];
     let landingDustParticles = [];
     let gameLoopStarted = false;
-    let animationFrameId = null;
-    let antiCheatPlatformActive = false;
-    let antiCheatMessageTimer = 0;
-    let antiCheatFlickerTimer = 0;
-    let antiCheatPlatformTimer = 0;
-    let antiCheatRoofActive = false;
-let antiCheatRoofTimer = 0;
-let antiCheatPlatform = null;
-let antiCheatRoof = null;
-let antiCheatTrigger = null;
-let antiCheatRoofTrigger = null;
-
     let currentLevel = 0;
     let platforms = [];
     let spikes = [];
     let exitPortal = {};
-
     let mobileMoveX = 0;
     let stickActive = false;
     const stickRadius = 50;
     const knobRadius = 23;
 
+    let antiCheatPlatform = null;
+    let antiCheatRoof = null;
+    let antiCheatTrigger = null;
+    let antiCheatRoofTrigger = null;
+    let antiCheatPlatformActive = false;
+    let antiCheatMessageTimer = 0;
+    let antiCheatFlickerTimer = 0;
+    let antiCheatPlatformTimer = 0;
+    let antiCheatRoofActive = false;
+    let antiCheatRoofTimer = 0;
+
     bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
+
+    const levels = [
+      {
+        name: "Level 1",
+        theme: "cyan",
+        playerStart: { x: 80, y: 430 },
+        portal: { x: 975, y: 220, width: 24, height: 48 },
+        antiCheatPlatform: { x: 930, y: 258, width: 145, height: 18 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1035, yMax: 300 },
+        antiCheatRoofTrigger: { yMax: 55 },
+        dashOrbs: [],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 120, y: 440, width: 120, height: 20 },
+          { x: 300, y: 390, width: 140, height: 20 },
+          { x: 540, y: 330, width: 120, height: 20 },
+          { x: 760, y: 270, width: 120, height: 20 },
+          { x: 470, y: 270, width: 20, height: 180 },
+          { x: 735, y: 190, width: 20, height: 180 }
+        ],
+        spikes: [
+          { x: 260, y: 490, width: 40, height: 20 },
+          { x: 500, y: 490, width: 40, height: 20 },
+          { x: 760, y: 490, width: 40, height: 20 },
+          { x: 360, y: 370, width: 40, height: 20 },
+          { x: 600, y: 310, width: 40, height: 20 }
+        ]
+      },
+      {
+        name: "Level 2",
+        theme: "cyan",
+        playerStart: { x: 70, y: 460 },
+        portal: { x: 980, y: 130, width: 24, height: 48 },
+        antiCheatPlatform: { x: 945, y: 175, width: 130, height: 18 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1040, yMax: 220 },
+        antiCheatRoofTrigger: { yMax: 55 },
+        dashOrbs: [],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 80, y: 470, width: 120, height: 20 },
+          { x: 260, y: 405, width: 100, height: 20 },
+          { x: 455, y: 340, width: 100, height: 20 },
+          { x: 655, y: 265, width: 100, height: 20 },
+          { x: 845, y: 180, width: 110, height: 20 },
+          { x: 355, y: 300, width: 20, height: 150 },
+          { x: 595, y: 215, width: 20, height: 150 }
+        ],
+        spikes: [
+          { x: 220, y: 490, width: 40, height: 20 },
+          { x: 400, y: 490, width: 40, height: 20 },
+          { x: 590, y: 490, width: 40, height: 20 },
+          { x: 780, y: 490, width: 40, height: 20 },
+          { x: 295, y: 385, width: 40, height: 20 },
+          { x: 490, y: 320, width: 40, height: 20 },
+          { x: 690, y: 245, width: 40, height: 20 }
+        ]
+      },
+      {
+        name: "Level 3",
+        theme: "cyan",
+        playerStart: { x: 60, y: 460 },
+        portal: { x: 975, y: 95, width: 24, height: 48 },
+        antiCheatPlatform: { x: 955, y: 135, width: 120, height: 16 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1045, yMax: 165 },
+        antiCheatRoofTrigger: { yMax: 48 },
+        dashOrbs: [],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 60, y: 470, width: 100, height: 20 },
+          { x: 220, y: 405, width: 110, height: 20 },
+          { x: 390, y: 340, width: 125, height: 20 },
+          { x: 555, y: 290, width: 115, height: 20 },
+          { x: 760, y: 220, width: 100, height: 20 },
+          { x: 320, y: 305, width: 20, height: 165 },
+          { x: 700, y: 165, width: 20, height: 180 }
+        ],
+        spikes: [
+          { x: 185, y: 490, width: 40, height: 20 },
+          { x: 375, y: 490, width: 40, height: 20 },
+          { x: 565, y: 490, width: 40, height: 20 },
+          { x: 755, y: 490, width: 40, height: 20 },
+          { x: 430, y: 320, width: 30, height: 20 },
+          { x: 600, y: 270, width: 30, height: 20 },
+          { x: 790, y: 200, width: 30, height: 20 }
+        ]
+      },
+      {
+        name: "Level 4",
+        theme: "cyan",
+        playerStart: { x: 70, y: 450 },
+        portal: { x: 975, y: 140, width: 24, height: 48 },
+        antiCheatPlatform: { x: 945, y: 180, width: 130, height: 18 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1040, yMax: 220 },
+        antiCheatRoofTrigger: { yMax: 55 },
+        dashOrbs: [],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 95, y: 450, width: 105, height: 20 },
+          { x: 280, y: 395, width: 95, height: 20 },
+          { x: 470, y: 330, width: 95, height: 20 },
+          { x: 675, y: 255, width: 95, height: 20 },
+          { x: 880, y: 180, width: 95, height: 20 },
+          { x: 200, y: 340, width: 20, height: 130 },
+          { x: 600, y: 205, width: 20, height: 145 }
+        ],
+        spikes: [
+          { x: 220, y: 490, width: 40, height: 20 },
+          { x: 410, y: 490, width: 40, height: 20 },
+          { x: 620, y: 490, width: 40, height: 20 },
+          { x: 820, y: 490, width: 40, height: 20 },
+          { x: 310, y: 375, width: 40, height: 20 },
+          { x: 500, y: 310, width: 40, height: 20 },
+          { x: 705, y: 235, width: 40, height: 20 }
+        ]
+      },
+      {
+        name: "Level 5",
+        theme: "cyan",
+        playerStart: { x: 60, y: 455 },
+        portal: { x: 995, y: 105, width: 24, height: 48 },
+        antiCheatPlatform: { x: 960, y: 145, width: 120, height: 16 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1050, yMax: 180 },
+        antiCheatRoofTrigger: { yMax: 50 },
+        dashOrbs: [],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 70, y: 460, width: 95, height: 20 },
+          { x: 250, y: 395, width: 95, height: 20 },
+          { x: 430, y: 330, width: 95, height: 20 },
+          { x: 625, y: 255, width: 95, height: 20 },
+          { x: 855, y: 175, width: 110, height: 20 },
+          { x: 360, y: 290, width: 20, height: 150 },
+          { x: 730, y: 155, width: 20, height: 165 }
+        ],
+        spikes: [
+          { x: 195, y: 490, width: 40, height: 20 },
+          { x: 375, y: 490, width: 40, height: 20 },
+          { x: 565, y: 490, width: 40, height: 20 },
+          { x: 785, y: 490, width: 40, height: 20 },
+          { x: 280, y: 375, width: 40, height: 20 },
+          { x: 460, y: 310, width: 40, height: 20 },
+          { x: 655, y: 235, width: 40, height: 20 }
+        ]
+      },
+      {
+        name: "Level 6",
+        theme: "magenta",
+        playerStart: { x: 70, y: 432 },
+        portal: { x: 980, y: 195, width: 24, height: 48 },
+        antiCheatPlatform: { x: 945, y: 235, width: 135, height: 18 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1040, yMax: 270 },
+        antiCheatRoofTrigger: { yMax: 55 },
+        dashOrbs: [{ x: 500, y: 300, radius: 12 }],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 80, y: 460, width: 100, height: 20 },
+          { x: 310, y: 385, width: 110, height: 20 },
+          { x: 600, y: 270, width: 110, height: 20 },
+          { x: 870, y: 240, width: 100, height: 20 },
+          { x: 450, y: 250, width: 20, height: 170 }
+        ],
+        spikes: [
+          { x: 220, y: 490, width: 60, height: 20 },
+          { x: 500, y: 490, width: 60, height: 20 },
+          { x: 790, y: 490, width: 60, height: 20 },
+          { x: 360, y: 365, width: 40, height: 20 }
+        ]
+      },
+      {
+        name: "Level 7",
+        theme: "magenta",
+        playerStart: { x: 70, y: 432 },
+        portal: { x: 975, y: 125, width: 24, height: 48 },
+        antiCheatPlatform: { x: 950, y: 165, width: 130, height: 16 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1040, yMax: 210 },
+        antiCheatRoofTrigger: { yMax: 52 },
+        dashOrbs: [{ x: 360, y: 350, radius: 12 }, { x: 690, y: 215, radius: 12 }],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 90, y: 460, width: 90, height: 20 },
+          { x: 280, y: 380, width: 90, height: 20 },
+          { x: 520, y: 285, width: 90, height: 20 },
+          { x: 880, y: 175, width: 110, height: 20 },
+          { x: 210, y: 305, width: 20, height: 155 },
+          { x: 640, y: 185, width: 20, height: 145 }
+        ],
+        spikes: [
+          { x: 200, y: 490, width: 50, height: 20 },
+          { x: 430, y: 490, width: 50, height: 20 },
+          { x: 670, y: 490, width: 50, height: 20 },
+          { x: 560, y: 265, width: 40, height: 20 }
+        ]
+      },
+      {
+        name: "Level 8",
+        theme: "magenta",
+        playerStart: { x: 60, y: 432 },
+        portal: { x: 995, y: 105, width: 24, height: 48 },
+        antiCheatPlatform: { x: 965, y: 145, width: 120, height: 16 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1055, yMax: 180 },
+        antiCheatRoofTrigger: { yMax: 52 },
+        dashOrbs: [{ x: 530, y: 310, radius: 12 }],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 80, y: 460, width: 100, height: 20 },
+          { x: 280, y: 395, width: 90, height: 20 },
+          { x: 500, y: 330, width: 90, height: 20 },
+          { x: 730, y: 245, width: 90, height: 20 },
+          { x: 930, y: 160, width: 90, height: 20 },
+          { x: 390, y: 290, width: 20, height: 140 },
+          { x: 650, y: 205, width: 20, height: 145 }
+        ],
+        spikes: [
+          { x: 210, y: 490, width: 50, height: 20 },
+          { x: 420, y: 490, width: 50, height: 20 },
+          { x: 650, y: 490, width: 50, height: 20 },
+          { x: 310, y: 375, width: 40, height: 20 },
+          { x: 760, y: 225, width: 40, height: 20 }
+        ]
+      },
+      {
+        name: "Level 9",
+        theme: "magenta",
+        playerStart: { x: 70, y: 432 },
+        portal: { x: 980, y: 115, width: 24, height: 48 },
+        antiCheatPlatform: { x: 950, y: 155, width: 130, height: 16 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1045, yMax: 190 },
+        antiCheatRoofTrigger: { yMax: 50 },
+        dashOrbs: [{ x: 310, y: 365, radius: 12 }, { x: 730, y: 215, radius: 12 }],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 90, y: 460, width: 90, height: 20 },
+          { x: 260, y: 385, width: 90, height: 20 },
+          { x: 490, y: 300, width: 90, height: 20 },
+          { x: 730, y: 215, width: 90, height: 20 },
+          { x: 900, y: 160, width: 100, height: 20 },
+          { x: 390, y: 255, width: 20, height: 155 },
+          { x: 650, y: 175, width: 20, height: 130 }
+        ],
+        spikes: [
+          { x: 190, y: 490, width: 60, height: 20 },
+          { x: 410, y: 490, width: 60, height: 20 },
+          { x: 650, y: 490, width: 60, height: 20 },
+          { x: 320, y: 365, width: 40, height: 20 },
+          { x: 540, y: 280, width: 40, height: 20 }
+        ]
+      },
+      {
+        name: "Level 10",
+        theme: "magenta",
+        playerStart: { x: 70, y: 432 },
+        portal: { x: 1010, y: 95, width: 24, height: 48 },
+        antiCheatPlatform: { x: 975, y: 135, width: 115, height: 16 },
+        antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
+        antiCheatTrigger: { xMin: 1060, yMax: 170 },
+        antiCheatRoofTrigger: { yMax: 48 },
+        dashOrbs: [
+          { x: 350, y: 345, radius: 12 },
+          { x: 640, y: 225, radius: 12 },
+          { x: 870, y: 145, radius: 12 }
+        ],
+        platforms: [
+          { x: 0, y: 510, width: 1100, height: 40 },
+          { x: 80, y: 460, width: 90, height: 20 },
+          { x: 280, y: 385, width: 80, height: 20 },
+          { x: 530, y: 290, width: 80, height: 20 },
+          { x: 770, y: 190, width: 80, height: 20 },
+          { x: 950, y: 140, width: 70, height: 20 },
+          { x: 200, y: 345, width: 20, height: 125 },
+          { x: 450, y: 250, width: 20, height: 145 },
+          { x: 700, y: 160, width: 20, height: 145 }
+        ],
+        spikes: [
+          { x: 180, y: 490, width: 60, height: 20 },
+          { x: 390, y: 490, width: 60, height: 20 },
+          { x: 610, y: 490, width: 60, height: 20 },
+          { x: 830, y: 490, width: 60, height: 20 },
+          { x: 300, y: 365, width: 40, height: 20 },
+          { x: 560, y: 270, width: 40, height: 20 },
+          { x: 810, y: 170, width: 40, height: 20 }
+        ]
+      }
+    ];
 
     function isMobileViewport() {
       return window.matchMedia("(max-width: 900px)").matches;
@@ -568,6 +873,54 @@ let antiCheatRoofTrigger = null;
 
     function getGroundFriction() {
       return isMobileViewport() ? 0.78 : 0.64;
+    }
+
+    function saveAchievements() {
+      localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
+    }
+
+    function saveSelectedSkin() {
+      localStorage.setItem(SKIN_KEY, selectedSkin);
+    }
+
+    function getUnlockedSkins() {
+      const unlocked = ["default"];
+      if (achievements.beatLevel3) unlocked.push("blue");
+      if (achievements.sub10Level1) unlocked.push("neon");
+      if (achievements.beatAllLevels) unlocked.push("gold");
+      return unlocked;
+    }
+
+    function updateSkinUI() {
+      const unlocked = getUnlockedSkins();
+      if (!unlocked.includes(selectedSkin)) {
+        selectedSkin = "default";
+        saveSelectedSkin();
+      }
+      skinText.textContent = skins[selectedSkin].name;
+    }
+
+    function cycleSkin() {
+      const unlocked = getUnlockedSkins();
+      const currentIndex = unlocked.indexOf(selectedSkin);
+      const nextIndex = (currentIndex + 1) % unlocked.length;
+      selectedSkin = unlocked[nextIndex];
+      saveSelectedSkin();
+      updateSkinUI();
+    }
+
+    function unlockAchievement(key) {
+      if (!achievements[key]) {
+        achievements[key] = true;
+        saveAchievements();
+        updateSkinUI();
+      }
+    }
+
+    function checkAchievementsOnLevelComplete() {
+      if (currentLevel === 0 && currentTime < 10) unlockAchievement("sub10Level1");
+      if (currentLevel === 2) unlockAchievement("beatLevel3");
+      if (currentLevel === levels.length - 1) unlockAchievement("beatAllLevels");
     }
 
     function getAudioContext() {
@@ -598,12 +951,7 @@ let antiCheatRoofTrigger = null;
       gainNode.connect(ac.destination);
 
       oscillator.start();
-
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.0001,
-        ac.currentTime + duration
-      );
-
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + duration);
       oscillator.stop(ac.currentTime + duration);
     }
 
@@ -643,326 +991,43 @@ let antiCheatRoofTrigger = null;
       addScreenShake(8);
       statusText.textContent = "You died!";
 
-      spawnDeathParticles(
-        player.x + player.width / 2,
-        player.y + player.height / 2
-      );
-
+      spawnDeathParticles(player.x + player.width / 2, player.y + player.height / 2);
       deathResetTimer = 24;
     }
 
-    const levels = [
-  {
-    name: "Level 1",
-    theme: "cyan",
-    playerStart: { x: 80, y: 430 },
-    portal: { x: 975, y: 220, width: 24, height: 48 },
-    antiCheatPlatform: { x: 930, y: 258, width: 145, height: 18 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1035, yMax: 300 },
-    antiCheatRoofTrigger: { yMax: 55 },
-    dashOrbs: [],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 120, y: 440, width: 120, height: 20 },
-      { x: 300, y: 390, width: 140, height: 20 },
-      { x: 540, y: 330, width: 120, height: 20 },
-      { x: 760, y: 270, width: 120, height: 20 },
-      { x: 470, y: 270, width: 20, height: 180 },
-      { x: 735, y: 190, width: 20, height: 180 }
-    ],
-    spikes: [
-      { x: 260, y: 490, width: 40, height: 20 },
-      { x: 500, y: 490, width: 40, height: 20 },
-      { x: 760, y: 490, width: 40, height: 20 },
-      { x: 360, y: 370, width: 40, height: 20 },
-      { x: 600, y: 310, width: 40, height: 20 }
-    ]
-  },
+    function spawnCelebration(x, y) {
+      const colors = ["#a855f7", "#c084fc", "#e9d5ff", "#22d3ee"];
+      for (let i = 0; i < 24; i++) {
+        const angle = (Math.PI * 2 * i) / 24;
+        const speed = 2 + Math.random() * 3;
+        celebrationParticles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1.5,
+          life: 40 + Math.random() * 20,
+          maxLife: 60,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
+    }
 
-  {
-    name: "Level 2",
-    theme: "cyan",
-    playerStart: { x: 70, y: 460 },
-    portal: { x: 980, y: 130, width: 24, height: 48 },
-    antiCheatPlatform: { x: 945, y: 175, width: 130, height: 18 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1040, yMax: 220 },
-    antiCheatRoofTrigger: { yMax: 55 },
-    dashOrbs: [],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 80, y: 470, width: 120, height: 20 },
-      { x: 260, y: 405, width: 100, height: 20 },
-      { x: 455, y: 340, width: 100, height: 20 },
-      { x: 655, y: 265, width: 100, height: 20 },
-      { x: 845, y: 180, width: 110, height: 20 },
-      { x: 355, y: 300, width: 20, height: 150 },
-      { x: 595, y: 215, width: 20, height: 150 }
-    ],
-    spikes: [
-      { x: 220, y: 490, width: 40, height: 20 },
-      { x: 400, y: 490, width: 40, height: 20 },
-      { x: 590, y: 490, width: 40, height: 20 },
-      { x: 780, y: 490, width: 40, height: 20 },
-      { x: 295, y: 385, width: 40, height: 20 },
-      { x: 490, y: 320, width: 40, height: 20 },
-      { x: 690, y: 245, width: 40, height: 20 }
-    ]
-  },
+    function spawnDeathParticles(x, y) {
+      const colors = currentTheme === "magenta"
+        ? ["#f472b6", "#fb7185", "#f9a8d4", "#22d3ee"]
+        : ["#22d3ee", "#67e8f9", "#a855f7", "#c084fc"];
 
-  {
-  name: "Level 3",
-  theme: "cyan",
-  playerStart: { x: 60, y: 460 },
-  portal: { x: 975, y: 95, width: 24, height: 48 },
-  antiCheatPlatform: { x: 955, y: 135, width: 120, height: 16 },
-  antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-  antiCheatTrigger: { xMin: 1045, yMax: 165 },
-  antiCheatRoofTrigger: { yMax: 48 },
-  dashOrbs: [],
-  platforms: [
-    { x: 0, y: 510, width: 1100, height: 40 },
-    { x: 60, y: 470, width: 100, height: 20 },
-    { x: 220, y: 405, width: 110, height: 20 },
-    { x: 390, y: 340, width: 125, height: 20 },
-    { x: 555, y: 290, width: 115, height: 20 },
-    { x: 760, y: 220, width: 100, height: 20 },
-    { x: 320, y: 305, width: 20, height: 165 },
-    { x: 700, y: 165, width: 20, height: 180 }
-  ],
-  spikes: [
-    { x: 185, y: 490, width: 40, height: 20 },
-    { x: 375, y: 490, width: 40, height: 20 },
-    { x: 565, y: 490, width: 40, height: 20 },
-    { x: 755, y: 490, width: 40, height: 20 },
-    { x: 430, y: 320, width: 30, height: 20 },
-    { x: 600, y: 270, width: 30, height: 20 },
-    { x: 790, y: 200, width: 30, height: 20 }
-  ]
-},
-
-  {
-    name: "Level 4",
-    theme: "cyan",
-    playerStart: { x: 70, y: 450 },
-    portal: { x: 975, y: 140, width: 24, height: 48 },
-    antiCheatPlatform: { x: 945, y: 180, width: 130, height: 18 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1040, yMax: 220 },
-    antiCheatRoofTrigger: { yMax: 55 },
-    dashOrbs: [],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 95, y: 450, width: 105, height: 20 },
-      { x: 280, y: 395, width: 95, height: 20 },
-      { x: 470, y: 330, width: 95, height: 20 },
-      { x: 675, y: 255, width: 95, height: 20 },
-      { x: 880, y: 180, width: 95, height: 20 },
-      { x: 200, y: 340, width: 20, height: 130 },
-      { x: 600, y: 205, width: 20, height: 145 }
-    ],
-    spikes: [
-      { x: 220, y: 490, width: 40, height: 20 },
-      { x: 410, y: 490, width: 40, height: 20 },
-      { x: 620, y: 490, width: 40, height: 20 },
-      { x: 820, y: 490, width: 40, height: 20 },
-      { x: 310, y: 375, width: 40, height: 20 },
-      { x: 500, y: 310, width: 40, height: 20 },
-      { x: 705, y: 235, width: 40, height: 20 }
-    ]
-  },
-
-  {
-    name: "Level 5",
-    theme: "cyan",
-    playerStart: { x: 60, y: 455 },
-    portal: { x: 995, y: 105, width: 24, height: 48 },
-    antiCheatPlatform: { x: 960, y: 145, width: 120, height: 16 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1050, yMax: 180 },
-    antiCheatRoofTrigger: { yMax: 50 },
-    dashOrbs: [],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 70, y: 460, width: 95, height: 20 },
-      { x: 250, y: 395, width: 95, height: 20 },
-      { x: 430, y: 330, width: 95, height: 20 },
-      { x: 625, y: 255, width: 95, height: 20 },
-      { x: 855, y: 175, width: 110, height: 20 },
-      { x: 360, y: 290, width: 20, height: 150 },
-      { x: 730, y: 155, width: 20, height: 165 }
-    ],
-    spikes: [
-      { x: 195, y: 490, width: 40, height: 20 },
-      { x: 375, y: 490, width: 40, height: 20 },
-      { x: 565, y: 490, width: 40, height: 20 },
-      { x: 785, y: 490, width: 40, height: 20 },
-      { x: 280, y: 375, width: 40, height: 20 },
-      { x: 460, y: 310, width: 40, height: 20 },
-      { x: 655, y: 235, width: 40, height: 20 }
-    ]
-  },
-
-  {
-    name: "Level 6",
-    theme: "magenta",
-    playerStart: { x: 70, y: 432 },
-    portal: { x: 980, y: 195, width: 24, height: 48 },
-    antiCheatPlatform: { x: 945, y: 235, width: 135, height: 18 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1040, yMax: 270 },
-    antiCheatRoofTrigger: { yMax: 55 },
-    dashOrbs: [{ x: 500, y: 300, radius: 12 }],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 80, y: 460, width: 100, height: 20 },
-      { x: 310, y: 385, width: 110, height: 20 },
-      { x: 600, y: 270, width: 110, height: 20 },
-      { x: 870, y: 240, width: 100, height: 20 },
-      { x: 450, y: 250, width: 20, height: 170 }
-    ],
-    spikes: [
-      { x: 220, y: 490, width: 60, height: 20 },
-      { x: 500, y: 490, width: 60, height: 20 },
-      { x: 790, y: 490, width: 60, height: 20 },
-      { x: 360, y: 365, width: 40, height: 20 }
-    ]
-  },
-
-  {
-    name: "Level 7",
-    theme: "magenta",
-    playerStart: { x: 70, y: 432 },
-    portal: { x: 975, y: 125, width: 24, height: 48 },
-    antiCheatPlatform: { x: 950, y: 165, width: 130, height: 16 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1040, yMax: 210 },
-    antiCheatRoofTrigger: { yMax: 52 },
-    dashOrbs: [{ x: 360, y: 350, radius: 12 }, { x: 690, y: 215, radius: 12 }],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 90, y: 460, width: 90, height: 20 },
-      { x: 280, y: 380, width: 90, height: 20 },
-      { x: 520, y: 285, width: 90, height: 20 },
-      { x: 880, y: 175, width: 110, height: 20 },
-      { x: 210, y: 305, width: 20, height: 155 },
-      { x: 640, y: 185, width: 20, height: 145 }
-    ],
-    spikes: [
-      { x: 200, y: 490, width: 50, height: 20 },
-      { x: 430, y: 490, width: 50, height: 20 },
-      { x: 670, y: 490, width: 50, height: 20 },
-      { x: 560, y: 265, width: 40, height: 20 }
-    ]
-  },
-
-  {
-    name: "Level 8",
-    theme: "magenta",
-    playerStart: { x: 60, y: 432 },
-    portal: { x: 995, y: 105, width: 24, height: 48 },
-    antiCheatPlatform: { x: 965, y: 145, width: 120, height: 16 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1055, yMax: 180 },
-    antiCheatRoofTrigger: { yMax: 52 },
-    dashOrbs: [{ x: 530, y: 310, radius: 12 }],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 80, y: 460, width: 100, height: 20 },
-      { x: 280, y: 395, width: 90, height: 20 },
-      { x: 500, y: 330, width: 90, height: 20 },
-      { x: 730, y: 245, width: 90, height: 20 },
-      { x: 930, y: 160, width: 90, height: 20 },
-      { x: 390, y: 290, width: 20, height: 140 },
-      { x: 650, y: 205, width: 20, height: 145 }
-    ],
-    spikes: [
-      { x: 210, y: 490, width: 50, height: 20 },
-      { x: 420, y: 490, width: 50, height: 20 },
-      { x: 650, y: 490, width: 50, height: 20 },
-      { x: 310, y: 375, width: 40, height: 20 },
-      { x: 760, y: 225, width: 40, height: 20 }
-    ]
-  },
-
-  {
-    name: "Level 9",
-    theme: "magenta",
-    playerStart: { x: 70, y: 432 },
-    portal: { x: 980, y: 115, width: 24, height: 48 },
-    antiCheatPlatform: { x: 950, y: 155, width: 130, height: 16 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1045, yMax: 190 },
-    antiCheatRoofTrigger: { yMax: 50 },
-    dashOrbs: [{ x: 310, y: 365, radius: 12 }, { x: 730, y: 215, radius: 12 }],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 90, y: 460, width: 90, height: 20 },
-      { x: 260, y: 385, width: 90, height: 20 },
-      { x: 490, y: 300, width: 90, height: 20 },
-      { x: 730, y: 215, width: 90, height: 20 },
-      { x: 900, y: 160, width: 100, height: 20 },
-      { x: 390, y: 255, width: 20, height: 155 },
-      { x: 650, y: 175, width: 20, height: 130 }
-    ],
-    spikes: [
-      { x: 190, y: 490, width: 60, height: 20 },
-      { x: 410, y: 490, width: 60, height: 20 },
-      { x: 650, y: 490, width: 60, height: 20 },
-      { x: 320, y: 365, width: 40, height: 20 },
-      { x: 540, y: 280, width: 40, height: 20 }
-    ]
-  },
-
-  {
-    name: "Level 10",
-    theme: "magenta",
-    playerStart: { x: 70, y: 432 },
-    portal: { x: 1010, y: 95, width: 24, height: 48 },
-    antiCheatPlatform: { x: 975, y: 135, width: 115, height: 16 },
-    antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
-    antiCheatTrigger: { xMin: 1060, yMax: 170 },
-    antiCheatRoofTrigger: { yMax: 48 },
-    dashOrbs: [
-      { x: 350, y: 345, radius: 12 },
-      { x: 640, y: 225, radius: 12 },
-      { x: 870, y: 145, radius: 12 }
-    ],
-    platforms: [
-      { x: 0, y: 510, width: 1100, height: 40 },
-      { x: 80, y: 460, width: 90, height: 20 },
-      { x: 280, y: 385, width: 80, height: 20 },
-      { x: 530, y: 290, width: 80, height: 20 },
-      { x: 770, y: 190, width: 80, height: 20 },
-      { x: 950, y: 140, width: 70, height: 20 },
-      { x: 200, y: 345, width: 20, height: 125 },
-      { x: 450, y: 250, width: 20, height: 145 },
-      { x: 700, y: 160, width: 20, height: 145 }
-    ],
-    spikes: [
-      { x: 180, y: 490, width: 60, height: 20 },
-      { x: 390, y: 490, width: 60, height: 20 },
-      { x: 610, y: 490, width: 60, height: 20 },
-      { x: 830, y: 490, width: 60, height: 20 },
-      { x: 300, y: 365, width: 40, height: 20 },
-      { x: 560, y: 270, width: 40, height: 20 },
-      { x: 810, y: 170, width: 40, height: 20 }
-    ]
-  }
-];
-
-    function drawDeathParticles() {
-      for (const p of deathParticles) {
-        const alpha = p.life / p.maxLife;
-
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = p.color;
-        ctx.fillStyle = p.color;
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-        ctx.restore();
+      for (let i = 0; i < 22; i++) {
+        const angle = (Math.PI * 2 * i) / 22;
+        const speed = 1.5 + Math.random() * 3;
+        deathParticles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 22 + Math.random() * 10,
+          maxLife: 32,
+          size: 4 + Math.floor(Math.random() * 4),
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
       }
     }
 
@@ -974,8 +1039,20 @@ let antiCheatRoofTrigger = null;
         p.vy *= 0.96;
         p.life -= 1;
       }
-
       deathParticles = deathParticles.filter(p => p.life > 0);
+    }
+
+    function drawDeathParticles() {
+      for (const p of deathParticles) {
+        const alpha = p.life / p.maxLife;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = p.color;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+        ctx.restore();
+      }
     }
 
     function spawnLandingDust(x, y) {
@@ -985,7 +1062,6 @@ let antiCheatRoofTrigger = null;
 
       for (let i = 0; i < 10; i++) {
         const dir = Math.random() < 0.5 ? -1 : 1;
-
         landingDustParticles.push({
           x: x + (Math.random() - 0.5) * 10,
           y: y + Math.random() * 4,
@@ -1007,14 +1083,12 @@ let antiCheatRoofTrigger = null;
         p.vy += 0.04;
         p.life -= 1;
       }
-
       landingDustParticles = landingDustParticles.filter(p => p.life > 0);
     }
 
     function drawLandingDustParticles() {
       for (const p of landingDustParticles) {
         const alpha = p.life / p.maxLife;
-
         ctx.save();
         ctx.globalAlpha = alpha * 0.9;
         ctx.shadowBlur = 6;
@@ -1025,62 +1099,9 @@ let antiCheatRoofTrigger = null;
       }
     }
 
-    function spawnCelebration(x, y) {
-      const colors = ["#a855f7", "#c084fc", "#e9d5ff", "#22d3ee"];
-
-      for (let i = 0; i < 24; i++) {
-        const angle = (Math.PI * 2 * i) / 24;
-        const speed = 2 + Math.random() * 3;
-
-        celebrationParticles.push({
-          x,
-          y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 1.5,
-          life: 40 + Math.random() * 20,
-          maxLife: 60,
-          color: colors[Math.floor(Math.random() * colors.length)]
-        });
-      }
-    }
-
-    function spawnDeathParticles(x, y) {
-      const colors = currentTheme === "magenta"
-        ? ["#f472b6", "#fb7185", "#f9a8d4", "#22d3ee"]
-        : ["#22d3ee", "#67e8f9", "#a855f7", "#c084fc"];
-
-      for (let i = 0; i < 22; i++) {
-        const angle = (Math.PI * 2 * i) / 22;
-        const speed = 1.5 + Math.random() * 3;
-
-        deathParticles.push({
-          x,
-          y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          life: 22 + Math.random() * 10,
-          maxLife: 32,
-          size: 4 + Math.floor(Math.random() * 4),
-          color: colors[Math.floor(Math.random() * colors.length)]
-        });
-      }
-    }
-
     function spawnWallSlideParticle() {
-      const colors = [
-        "#ff4d6d",
-        "#f97316",
-        "#facc15",
-        "#22c55e",
-        "#38bdf8",
-        "#818cf8",
-        "#c084fc"
-      ];
-
-      const sideX = touchingWallLeft
-        ? player.x - 2
-        : player.x + player.width + 2;
-
+      const colors = ["#ff4d6d", "#f97316", "#facc15", "#22c55e", "#38bdf8", "#818cf8", "#c084fc"];
+      const sideX = touchingWallLeft ? player.x - 2 : player.x + player.width + 2;
       const sparkY = player.y + 6 + Math.random() * (player.height - 12);
 
       wallSlideParticles.push({
@@ -1103,14 +1124,12 @@ let antiCheatRoofTrigger = null;
         p.vy *= 0.98;
         p.life -= 1;
       }
-
       wallSlideParticles = wallSlideParticles.filter(p => p.life > 0);
     }
 
     function drawWallSlideParticles() {
       for (const p of wallSlideParticles) {
         const alpha = p.life / p.maxLife;
-
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.shadowBlur = 8;
@@ -1123,14 +1142,11 @@ let antiCheatRoofTrigger = null;
 
     function spawnOrbPickupParticles(x, y) {
       const colors = ["#fb923c", "#fdba74", "#fff7ed", "#f472b6"];
-
       for (let i = 0; i < 16; i++) {
         const angle = (Math.PI * 2 * i) / 16;
         const speed = 1.5 + Math.random() * 2;
-
         orbPickupParticles.push({
-          x,
-          y,
+          x, y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           life: 20 + Math.random() * 12,
@@ -1141,14 +1157,37 @@ let antiCheatRoofTrigger = null;
       }
     }
 
+    function updateOrbPickupParticles() {
+      for (const p of orbPickupParticles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.96;
+        p.vy *= 0.96;
+        p.life -= 1;
+      }
+      orbPickupParticles = orbPickupParticles.filter(p => p.life > 0);
+    }
+
+    function drawOrbPickupParticles() {
+      for (const p of orbPickupParticles) {
+        const alpha = p.life / p.maxLife;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = p.color;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+        ctx.restore();
+      }
+    }
+
     function spawnDashTrailParticle(x, y) {
       const colors = currentTheme === "magenta"
         ? ["#f472b6", "#fb7185", "#f9a8d4", "#22d3ee"]
         : ["#22d3ee", "#a855f7", "#c084fc", "#67e8f9"];
 
       dashTrailParticles.push({
-        x,
-        y,
+        x, y,
         vx: (Math.random() - 0.5) * 0.8,
         vy: (Math.random() - 0.5) * 0.8,
         life: 10 + Math.random() * 6,
@@ -1158,6 +1197,28 @@ let antiCheatRoofTrigger = null;
       });
     }
 
+    function updateDashTrailParticles() {
+      for (const p of dashTrailParticles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 1;
+      }
+      dashTrailParticles = dashTrailParticles.filter(p => p.life > 0);
+    }
+
+    function drawDashTrailParticles() {
+      for (const p of dashTrailParticles) {
+        const alpha = p.life / p.maxLife;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = p.color;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+        ctx.restore();
+      }
+    }
+
     function updateCelebration() {
       for (const p of celebrationParticles) {
         p.x += p.vx;
@@ -1165,14 +1226,12 @@ let antiCheatRoofTrigger = null;
         p.vy += 0.08;
         p.life -= 1;
       }
-
       celebrationParticles = celebrationParticles.filter(p => p.life > 0);
     }
 
     function drawCelebration() {
       for (const p of celebrationParticles) {
         const alpha = p.life / p.maxLife;
-
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.shadowBlur = 10;
@@ -1185,9 +1244,7 @@ let antiCheatRoofTrigger = null;
 
     function drawAntiCheatMessage() {
       if (antiCheatMessageTimer <= 0) return;
-
       const alpha = 0.6 + Math.sin(performance.now() * 0.02) * 0.35;
-
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.fillStyle = "#fb7185";
@@ -1208,7 +1265,6 @@ let antiCheatRoofTrigger = null;
       statusText.textContent = "Level complete!";
 
       const finalTime = currentTime;
-
       if (bestTime === null || finalTime < bestTime) {
         bestTime = finalTime;
         localStorage.setItem("neonNinjaBestTime", bestTime);
@@ -1216,10 +1272,8 @@ let antiCheatRoofTrigger = null;
         statusText.textContent = "New best time!";
       }
 
-      spawnCelebration(
-        exitPortal.x + exitPortal.width / 2,
-        exitPortal.y + exitPortal.height / 2
-      );
+      spawnCelebration(exitPortal.x + exitPortal.width / 2, exitPortal.y + exitPortal.height / 2);
+      checkAchievementsOnLevelComplete();
 
       setTimeout(() => {
         if (currentLevel < levels.length - 1) {
@@ -1228,74 +1282,69 @@ let antiCheatRoofTrigger = null;
         } else {
           statusText.textContent = "You beat all levels!";
           currentLevel = 0;
-          setTimeout(() => {
-            loadLevel(currentLevel);
-          }, 700);
+          setTimeout(() => loadLevel(currentLevel), 700);
         }
       }, 900);
     }
 
     function loadLevel(index) {
-  const level = levels[index];
+      const level = levels[index];
 
-  platforms = level.platforms;
-  spikes = level.spikes;
-  exitPortal = level.portal;
-  dashOrbs = (level.dashOrbs || []).map(orb => ({
-    ...orb,
-    collected: false
-  }));
-  currentTheme = level.theme || "cyan";
+      platforms = level.platforms;
+      spikes = level.spikes;
+      exitPortal = level.portal;
+      dashOrbs = (level.dashOrbs || []).map(orb => ({ ...orb, collected: false }));
+      currentTheme = level.theme || "cyan";
 
-  antiCheatPlatform = level.antiCheatPlatform || null;
-  antiCheatRoof = level.antiCheatRoof || null;
-  antiCheatTrigger = level.antiCheatTrigger || null;
-  antiCheatRoofTrigger = level.antiCheatRoofTrigger || null;
+      antiCheatPlatform = level.antiCheatPlatform || null;
+      antiCheatRoof = level.antiCheatRoof || null;
+      antiCheatTrigger = level.antiCheatTrigger || null;
+      antiCheatRoofTrigger = level.antiCheatRoofTrigger || null;
 
-  dashCharges = 0;
-  isDashing = false;
-  dashTimer = 0;
-  coyoteTimer = 0;
-  jumpBufferTimer = 0;
-  dashText.textContent = dashCharges;
+      dashCharges = 0;
+      isDashing = false;
+      dashTimer = 0;
+      coyoteTimer = 0;
+      jumpBufferTimer = 0;
+      dashText.textContent = dashCharges;
 
-  player.x = level.playerStart.x;
-  player.y = level.playerStart.y;
-  player.vx = 0;
-  player.vy = 0;
-  player.facing = 1;
+      player.x = level.playerStart.x;
+      player.y = level.playerStart.y;
+      player.vx = 0;
+      player.vy = 0;
+      player.facing = 1;
 
-  onGround = false;
-  touchingWallLeft = false;
-  touchingWallRight = false;
-  wallSliding = false;
-  antiCheatPlatformActive = false;
-  antiCheatPlatformTimer = 0;
-  antiCheatRoofActive = false;
-  antiCheatRoofTimer = 0;
-  antiCheatMessageTimer = 0;
-  antiCheatFlickerTimer = 0;
+      onGround = false;
+      touchingWallLeft = false;
+      touchingWallRight = false;
+      wallSliding = false;
+      antiCheatPlatformActive = false;
+      antiCheatPlatformTimer = 0;
+      antiCheatRoofActive = false;
+      antiCheatRoofTimer = 0;
+      antiCheatMessageTimer = 0;
+      antiCheatFlickerTimer = 0;
 
-  levelEnding = false;
-  celebrationParticles = [];
-  orbPickupParticles = [];
-  dashTrailParticles = [];
-  deathParticles = [];
-  wallSlideParticles = [];
-  landingDustParticles = [];
-  deathResetTimer = 0;
+      levelEnding = false;
+      celebrationParticles = [];
+      orbPickupParticles = [];
+      dashTrailParticles = [];
+      deathParticles = [];
+      wallSlideParticles = [];
+      landingDustParticles = [];
+      deathResetTimer = 0;
 
-  mobileMoveX = 0;
-  resetStick();
+      mobileMoveX = 0;
+      resetStick();
 
-  levelStartTime = performance.now();
-  currentTime = 0;
-  timerText.textContent = "0.000s";
+      levelStartTime = performance.now();
+      currentTime = 0;
+      timerText.textContent = "0.000s";
 
-  levelText.textContent = String(index + 1);
-  levelSelect.value = String(index);
-  statusText.textContent = "Ready";
-}
+      levelText.textContent = String(index + 1);
+      levelSelect.value = String(index);
+      statusText.textContent = "Ready";
+    }
 
     function resetLevel() {
       loadLevel(currentLevel);
@@ -1308,26 +1357,69 @@ let antiCheatRoofTrigger = null;
       }
     }
 
-    function updateOrbPickupParticles() {
-      for (const p of orbPickupParticles) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.96;
-        p.vy *= 0.96;
-        p.life -= 1;
-      }
-
-      orbPickupParticles = orbPickupParticles.filter(p => p.life > 0);
+    function queueJump() {
+      jumpBufferTimer = JUMP_BUFFER_FRAMES;
     }
 
-    function updateDashTrailParticles() {
-      for (const p of dashTrailParticles) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life -= 1;
+    function tryJump() {
+      getAudioContext();
+
+      if (onGround || coyoteTimer > 0) {
+        player.vy = jumpPower;
+        onGround = false;
+        coyoteTimer = 0;
+        jumpBufferTimer = 0;
+        touchingWallLeft = false;
+        touchingWallRight = false;
+        wallSliding = false;
+        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Jumping";
+        playJumpSound();
+        return true;
       }
 
-      dashTrailParticles = dashTrailParticles.filter(p => p.life > 0);
+      if (wallSliding) {
+        player.vy = jumpPower * 0.9;
+
+        if (touchingWallLeft) {
+          player.vx = 6;
+          player.facing = 1;
+        } else if (touchingWallRight) {
+          player.vx = -6;
+          player.facing = -1;
+        }
+
+        wallSliding = false;
+        jumpBufferTimer = 0;
+        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Wall jump!";
+        playWallJumpSound();
+        return true;
+      }
+
+      return false;
+    }
+
+    function tryDash() {
+      if (dashCharges > 0 && !onGround && !isDashing) {
+        const dashSpeed = isMobileViewport() ? 15 : 10.5;
+        const dashFrames = isMobileViewport() ? 14 : 9;
+
+        dashCharges = 0;
+        dashText.textContent = dashCharges;
+        isDashing = true;
+        dashTimer = dashFrames;
+        player.vy = 0;
+        player.vx = player.facing * dashSpeed;
+        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Dash!";
+        playDashSound();
+        addScreenShake(4);
+      }
+    }
+
+    function rectOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
+      return ax < bx + bw &&
+             ax + aw > bx &&
+             ay < by + bh &&
+             ay + ah > by;
     }
 
     function updatePlayer() {
@@ -1339,18 +1431,14 @@ let antiCheatRoofTrigger = null;
       if (antiCheatFlickerTimer > 0) antiCheatFlickerTimer--;
 
       if (antiCheatPlatformTimer > 0) {
-  antiCheatPlatformTimer--;
-  if (antiCheatPlatformTimer <= 0) {
-    antiCheatPlatformActive = false;
-  }
-}
+        antiCheatPlatformTimer--;
+        if (antiCheatPlatformTimer <= 0) antiCheatPlatformActive = false;
+      }
 
-if (antiCheatRoofTimer > 0) {
-  antiCheatRoofTimer--;
-  if (antiCheatRoofTimer <= 0) {
-    antiCheatRoofActive = false;
-  }
-}
+      if (antiCheatRoofTimer > 0) {
+        antiCheatRoofTimer--;
+        if (antiCheatRoofTimer <= 0) antiCheatRoofActive = false;
+      }
 
       touchingWallLeft = false;
       touchingWallRight = false;
@@ -1358,9 +1446,7 @@ if (antiCheatRoofTimer > 0) {
 
       if (dashTimer > 0) {
         dashTimer--;
-        if (dashTimer <= 0) {
-          isDashing = false;
-        }
+        if (dashTimer <= 0) isDashing = false;
       }
 
       if (isDashing) {
@@ -1407,30 +1493,16 @@ if (antiCheatRoofTimer > 0) {
       const fallSpeedBeforeCollision = player.vy;
 
       const activePlatforms = [...platforms];
-
-if (antiCheatPlatformActive && antiCheatPlatform) {
-  activePlatforms.push(antiCheatPlatform);
-}
-
-if (antiCheatRoofActive && antiCheatRoof) {
-  activePlatforms.push(antiCheatRoof);
-}
+      if (antiCheatPlatformActive && antiCheatPlatform) activePlatforms.push(antiCheatPlatform);
+      if (antiCheatRoofActive && antiCheatRoof) activePlatforms.push(antiCheatRoof);
 
       player.x += player.vx;
 
       for (const platform of activePlatforms) {
-        if (
-          rectOverlap(
-            player.x,
-            player.y,
-            player.width,
-            player.height,
-            platform.x,
-            platform.y,
-            platform.width,
-            platform.height
-          )
-        ) {
+        if (rectOverlap(
+          player.x, player.y, player.width, player.height,
+          platform.x, platform.y, platform.width, platform.height
+        )) {
           if (prevX + player.width <= platform.x) {
             player.x = platform.x - player.width;
             player.vx = 0;
@@ -1445,18 +1517,10 @@ if (antiCheatRoofActive && antiCheatRoof) {
       onGround = false;
 
       for (const platform of activePlatforms) {
-        if (
-          rectOverlap(
-            player.x,
-            player.y,
-            player.width,
-            player.height,
-            platform.x,
-            platform.y,
-            platform.width,
-            platform.height
-          )
-        ) {
+        if (rectOverlap(
+          player.x, player.y, player.width, player.height,
+          platform.x, platform.y, platform.width, platform.height
+        )) {
           if (prevY + player.height <= platform.y) {
             player.y = platform.y - player.height;
             player.vy = 0;
@@ -1469,37 +1533,36 @@ if (antiCheatRoofActive && antiCheatRoof) {
       }
 
       if (
-  antiCheatRoofTrigger &&
-  !antiCheatRoofActive &&
-  player.y < antiCheatRoofTrigger.yMax &&
-  !onGround
-) {
-  antiCheatRoofActive = true;
-  antiCheatRoofTimer = 180;
-  antiCheatMessageTimer = 90;
-  antiCheatFlickerTimer = 28;
-  statusText.textContent = "No cheating";
-}
+        antiCheatRoofTrigger &&
+        !antiCheatRoofActive &&
+        player.y < antiCheatRoofTrigger.yMax &&
+        !onGround
+      ) {
+        antiCheatRoofActive = true;
+        antiCheatRoofTimer = 180;
+        antiCheatMessageTimer = 90;
+        antiCheatFlickerTimer = 28;
+        statusText.textContent = "No cheating";
+      }
 
-     if (
-  antiCheatTrigger &&
-  !antiCheatPlatformActive &&
-  player.x + player.width > antiCheatTrigger.xMin &&
-  player.y < antiCheatTrigger.yMax &&
-  !onGround
-) {
-  antiCheatPlatformActive = true;
-  antiCheatPlatformTimer = 180;
-  antiCheatMessageTimer = 90;
-  antiCheatFlickerTimer = 28;
-  statusText.textContent = "No cheating";
-}
+      if (
+        antiCheatTrigger &&
+        !antiCheatPlatformActive &&
+        player.x + player.width > antiCheatTrigger.xMin &&
+        player.y < antiCheatTrigger.yMax &&
+        !onGround
+      ) {
+        antiCheatPlatformActive = true;
+        antiCheatPlatformTimer = 180;
+        antiCheatMessageTimer = 90;
+        antiCheatFlickerTimer = 28;
+        statusText.textContent = "No cheating";
+      }
 
       if (onGround) {
         if (!wasOnGround && fallSpeedBeforeCollision > 2.5) {
           spawnLandingDust(player.x + player.width / 2, player.y + player.height);
         }
-
         isDashing = false;
         dashTimer = 0;
         coyoteTimer = COYOTE_FRAMES;
@@ -1539,68 +1602,67 @@ if (antiCheatRoofActive && antiCheatRoof) {
       }
 
       const probe = 2;
-for (const platform of activePlatforms) {
-  // ignore floor-like contact near the player's feet
-  const probeY = player.y + 4;
-  const probeH = Math.max(8, player.height - 10);
+      for (const platform of activePlatforms) {
+        const probeY = player.y + 4;
+        const probeH = Math.max(8, player.height - 10);
 
-  if (
-    rectOverlap(
-      player.x - probe,
-      probeY,
-      probe,
-      probeH,
-      platform.x,
-      platform.y,
-      platform.width,
-      platform.height
-    )
-  ) {
-    touchingWallLeft = true;
-  }
+        if (
+          rectOverlap(
+            player.x - probe,
+            probeY,
+            probe,
+            probeH,
+            platform.x,
+            platform.y,
+            platform.width,
+            platform.height
+          )
+        ) {
+          touchingWallLeft = true;
+        }
 
-  if (
-    rectOverlap(
-      player.x + player.width,
-      probeY,
-      probe,
-      probeH,
-      platform.x,
-      platform.y,
-      platform.width,
-      platform.height
-    )
-  ) {
-    touchingWallRight = true;
-  }
-}
+        if (
+          rectOverlap(
+            player.x + player.width,
+            probeY,
+            probe,
+            probeH,
+            platform.x,
+            platform.y,
+            platform.width,
+            platform.height
+          )
+        ) {
+          touchingWallRight = true;
+        }
+      }
 
       if (player.x <= 0) touchingWallLeft = true;
       if (player.x + player.width >= canvas.width) touchingWallRight = true;
 
-  const pressingIntoLeftWall = touchingWallLeft && (keys.left || mobileMoveX < -0.2);
-const pressingIntoRightWall = touchingWallRight && (keys.right || mobileMoveX > 0.2);
+      const pressingIntoLeftWall = touchingWallLeft && (keys.left || mobileMoveX < -0.2);
+      const pressingIntoRightWall = touchingWallRight && (keys.right || mobileMoveX > 0.2);
 
-if (
-  !onGround &&
-  player.vy > 0 &&
-  (pressingIntoLeftWall || pressingIntoRightWall)
-) {
-  wallSliding = true;
-  if (player.vy > 2) player.vy = 2;
+      if (
+        !onGround &&
+        player.vy > 0 &&
+        (pressingIntoLeftWall || pressingIntoRightWall)
+      ) {
+        wallSliding = true;
+        if (player.vy > 2) player.vy = 2;
 
-  if (Math.random() < 0.55) {
-    spawnWallSlideParticle();
-  }
+        if (Math.random() < 0.55) {
+          spawnWallSlideParticle();
+        }
 
-  statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Wall sliding";
-} else if (!onGround) {
-  wallSliding = false;
-  statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Jumping";
-} else {
-  wallSliding = false;
-  statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Ready";
-}
+        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Wall sliding";
+      } else if (!onGround) {
+        wallSliding = false;
+        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Jumping";
+      } else {
+        wallSliding = false;
+        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Ready";
+      }
 
       if (!keys.left && !keys.right && Math.abs(mobileMoveX) < 0.05 && onGround) {
         player.vx *= moveFriction;
@@ -1608,71 +1670,137 @@ if (
       }
 
       for (const spike of spikes) {
-        if (
-          rectOverlap(
-            player.x + 4,
-            player.y + 4,
-            player.width - 8,
-            player.height - 6,
-            spike.x,
-            spike.y,
-            spike.width,
-            spike.height
-          )
-        ) {
+        if (rectOverlap(
+          player.x + 4, player.y + 4, player.width - 8, player.height - 6,
+          spike.x, spike.y, spike.width, spike.height
+        )) {
           die();
           return;
         }
       }
 
-  if (
-  !antiCheatPlatformActive &&
-  !antiCheatRoofActive &&
-  rectOverlap(
-    player.x,
-    player.y,
-    player.width,
-    player.height,
-    exitPortal.x,
-    exitPortal.y,
-    exitPortal.width,
-    exitPortal.height
-  )
-) {
-  winLevel();
-  return;
-}
+      if (
+        !antiCheatPlatformActive &&
+        !antiCheatRoofActive &&
+        rectOverlap(
+          player.x, player.y, player.width, player.height,
+          exitPortal.x, exitPortal.y, exitPortal.width, exitPortal.height
+        )
+      ) {
+        winLevel();
+        return;
+      }
 
       if (player.y > canvas.height + 100) {
         resetLevel();
       }
     }
 
-    function drawOrbPickupParticles() {
-      for (const p of orbPickupParticles) {
-        const alpha = p.life / p.maxLife;
+    function drawBackground() {
+      if (currentTheme === "magenta") {
+        const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bg.addColorStop(0, "#1a0b2e");
+        bg.addColorStop(1, "#0f172a");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(244, 114, 182, 0.18)";
+      } else {
+        ctx.fillStyle = "rgba(147, 197, 253, 0.15)";
+      }
 
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = p.color;
-        ctx.fillStyle = p.color;
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-        ctx.restore();
+      for (let i = 0; i < 40; i++) {
+        const x = (i * 173) % canvas.width;
+        const y = (i * 97) % 220;
+        ctx.fillRect(x, y, 2, 2);
       }
     }
 
-    function drawDashTrailParticles() {
-      for (const p of dashTrailParticles) {
-        const alpha = p.life / p.maxLife;
+    function drawPlatforms() {
+      const topColor = currentTheme === "magenta" ? "#f472b6" : "#22d3ee";
+      const baseColor = currentTheme === "magenta" ? "#312e81" : "#1f2937";
+      const highlightColor = currentTheme === "magenta" ? "#4338ca" : "#374151";
 
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = p.color;
-        ctx.fillStyle = p.color;
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-        ctx.restore();
+      for (const platform of platforms) {
+        ctx.fillStyle = baseColor;
+        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        ctx.fillStyle = topColor;
+        ctx.fillRect(platform.x, platform.y, platform.width, 4);
+        ctx.fillStyle = highlightColor;
+        ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
+      }
+
+      if (antiCheatPlatformActive && antiCheatPlatform) {
+        const flickerPhase = antiCheatFlickerTimer > 0
+          ? Math.floor(performance.now() / 40) % 2 === 0
+          : true;
+
+        if (flickerPhase) {
+          ctx.save();
+          ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
+          ctx.shadowColor = "#fb7185";
+
+          ctx.fillStyle = "#3f0d1b";
+          ctx.fillRect(antiCheatPlatform.x, antiCheatPlatform.y, antiCheatPlatform.width, antiCheatPlatform.height);
+
+          ctx.fillStyle = "#f43f5e";
+          ctx.fillRect(antiCheatPlatform.x, antiCheatPlatform.y, antiCheatPlatform.width, 4);
+
+          ctx.fillStyle = "#fb7185";
+          ctx.fillRect(antiCheatPlatform.x + 4, antiCheatPlatform.y + 6, antiCheatPlatform.width - 8, 4);
+          ctx.restore();
+        }
+      }
+
+      if (antiCheatRoofActive && antiCheatRoof) {
+        const flickerPhase = antiCheatFlickerTimer > 0
+          ? Math.floor(performance.now() / 40) % 2 === 0
+          : true;
+
+        if (flickerPhase) {
+          ctx.save();
+          ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
+          ctx.shadowColor = "#fb7185";
+
+          ctx.fillStyle = "#3f0d1b";
+          ctx.fillRect(antiCheatRoof.x, antiCheatRoof.y, antiCheatRoof.width, antiCheatRoof.height);
+
+          ctx.fillStyle = "#f43f5e";
+          ctx.fillRect(antiCheatRoof.x, antiCheatRoof.y, antiCheatRoof.width, 4);
+
+          ctx.fillStyle = "#fb7185";
+          ctx.fillRect(antiCheatRoof.x + 4, antiCheatRoof.y + 6, antiCheatRoof.width - 8, 4);
+          ctx.restore();
+        }
+      }
+    }
+
+    function drawSpikes() {
+      const fill = currentTheme === "magenta" ? "#fda4af" : "#e5e7eb";
+      const edge = currentTheme === "magenta" ? "#fb7185" : "#94a3b8";
+      const base = currentTheme === "magenta" ? "#7f1d1d" : "#475569";
+
+      for (const spike of spikes) {
+        const spikeCount = spike.width / 10;
+
+        for (let i = 0; i < spikeCount; i++) {
+          const x = spike.x + i * 10;
+          const y = spike.y;
+
+          ctx.fillStyle = fill;
+          ctx.beginPath();
+          ctx.moveTo(x, y + spike.height);
+          ctx.lineTo(x + 5, y);
+          ctx.lineTo(x + 10, y + spike.height);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.strokeStyle = edge;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = base;
+        ctx.fillRect(spike.x, spike.y + spike.height - 3, spike.width, 3);
       }
     }
 
@@ -1751,206 +1879,56 @@ if (
       ctx.restore();
     }
 
-    function rectOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
-      return ax < bx + bw &&
-             ax + aw > bx &&
-             ay < by + bh &&
-             ay + ah > by;
-    }
+    function drawPlayer() {
+      const sprite = processedNinjaSprite || ninjaSprite;
+      const drawWidth = 44;
+      const drawHeight = 60;
 
-    function drawBackground() {
-      if (currentTheme === "magenta") {
-        const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        bg.addColorStop(0, "#1a0b2e");
-        bg.addColorStop(1, "#0f172a");
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 10);
 
-        ctx.fillStyle = "rgba(244, 114, 182, 0.18)";
-      } else {
-        ctx.fillStyle = "rgba(147, 197, 253, 0.15)";
+      if (player.facing < 0) {
+        ctx.scale(-1, 1);
       }
 
-      for (let i = 0; i < 40; i++) {
-        const x = (i * 173) % canvas.width;
-        const y = (i * 97) % 220;
-        ctx.fillRect(x, y, 2, 2);
-      }
-    }
+      if (sprite && sprite.width > 0) {
+        const frameWidth = Math.floor(sprite.width / 4);
+        const frameHeight = sprite.height;
 
-    function drawPlatforms() {
-  const topColor = currentTheme === "magenta" ? "#f472b6" : "#22d3ee";
-  const baseColor = currentTheme === "magenta" ? "#312e81" : "#1f2937";
-  const highlightColor = currentTheme === "magenta" ? "#4338ca" : "#374151";
-
-  for (const platform of platforms) {
-    ctx.fillStyle = baseColor;
-    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-
-    ctx.fillStyle = topColor;
-    ctx.fillRect(platform.x, platform.y, platform.width, 4);
-
-    ctx.fillStyle = highlightColor;
-    ctx.fillRect(platform.x + 4, platform.y + 6, platform.width - 8, 4);
-  }
-
-  if (antiCheatPlatformActive && antiCheatPlatform) {
-    const flickerPhase = antiCheatFlickerTimer > 0
-      ? Math.floor(performance.now() / 40) % 2 === 0
-      : true;
-
-    if (flickerPhase) {
-      ctx.save();
-      ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
-      ctx.shadowColor = "#fb7185";
-
-      ctx.fillStyle = "#3f0d1b";
-      ctx.fillRect(
-        antiCheatPlatform.x,
-        antiCheatPlatform.y,
-        antiCheatPlatform.width,
-        antiCheatPlatform.height
-      );
-
-      ctx.fillStyle = "#f43f5e";
-      ctx.fillRect(
-        antiCheatPlatform.x,
-        antiCheatPlatform.y,
-        antiCheatPlatform.width,
-        4
-      );
-
-      ctx.fillStyle = "#fb7185";
-      ctx.fillRect(
-        antiCheatPlatform.x + 4,
-        antiCheatPlatform.y + 6,
-        antiCheatPlatform.width - 8,
-        4
-      );
-
-      ctx.restore();
-    }
-  }
-
-  if (antiCheatRoofActive && antiCheatRoof) {
-    const flickerPhase = antiCheatFlickerTimer > 0
-      ? Math.floor(performance.now() / 40) % 2 === 0
-      : true;
-
-    if (flickerPhase) {
-      ctx.save();
-      ctx.shadowBlur = antiCheatFlickerTimer > 0 ? 18 : 10;
-      ctx.shadowColor = "#fb7185";
-
-      ctx.fillStyle = "#3f0d1b";
-      ctx.fillRect(
-        antiCheatRoof.x,
-        antiCheatRoof.y,
-        antiCheatRoof.width,
-        antiCheatRoof.height
-      );
-
-      ctx.fillStyle = "#f43f5e";
-      ctx.fillRect(
-        antiCheatRoof.x,
-        antiCheatRoof.y,
-        antiCheatRoof.width,
-        4
-      );
-
-      ctx.fillStyle = "#fb7185";
-      ctx.fillRect(
-        antiCheatRoof.x + 4,
-        antiCheatRoof.y + 6,
-        antiCheatRoof.width - 8,
-        4
-      );
-
-      ctx.restore();
-    }
-  }
-}
-
-
-    function drawSpikes() {
-      const fill = currentTheme === "magenta" ? "#fda4af" : "#e5e7eb";
-      const edge = currentTheme === "magenta" ? "#fb7185" : "#94a3b8";
-      const base = currentTheme === "magenta" ? "#7f1d1d" : "#475569";
-
-      for (const spike of spikes) {
-        const spikeCount = spike.width / 10;
-
-        for (let i = 0; i < spikeCount; i++) {
-          const x = spike.x + i * 10;
-          const y = spike.y;
-
-          ctx.fillStyle = fill;
-          ctx.beginPath();
-          ctx.moveTo(x, y + spike.height);
-          ctx.lineTo(x + 5, y);
-          ctx.lineTo(x + 10, y + spike.height);
-          ctx.closePath();
-          ctx.fill();
-
-          ctx.strokeStyle = edge;
-          ctx.lineWidth = 1;
-          ctx.stroke();
+        let frame = 0;
+        if (wallSliding) {
+          frame = 3;
+        } else if (!onGround) {
+          frame = 1;
+        } else if (Math.abs(player.vx) > 0.2) {
+          frame = Math.floor(performance.now() / 150) % 2 + 1;
         }
 
-        ctx.fillStyle = base;
-        ctx.fillRect(spike.x, spike.y + spike.height - 3, spike.width, 3);
+        ctx.drawImage(
+          sprite,
+          frame * frameWidth, 0,
+          frameWidth, frameHeight,
+          -drawWidth / 2, -drawHeight / 2,
+          drawWidth, drawHeight
+        );
+
+        const skin = skins[selectedSkin] || skins.default;
+        if (skin.tint) {
+          ctx.save();
+          ctx.globalCompositeOperation = "source-atop";
+          ctx.fillStyle = skin.tint;
+          ctx.fillRect(-drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+          ctx.restore();
+        }
+      } else {
+        ctx.fillStyle = "#1f2937";
+        ctx.fillRect(-12, -14, 24, 28);
+        ctx.fillStyle = "#22d3ee";
+        ctx.fillRect(-8, -4, 16, 4);
       }
+
+      ctx.restore();
     }
-
-    function drawPlayer() {
-  const sprite = processedNinjaSprite || ninjaSprite;
-
-  const drawWidth = 44;
-const drawHeight = 60;
-
-  ctx.save();
-  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 10);
-
-  if (player.facing < 0) {
-    ctx.scale(-1, 1);
-  }
-
-  if (sprite && sprite.width > 0) {
-    // force 4 horizontal frames
-    const frameWidth = Math.floor(sprite.width / 4);
-    const frameHeight = sprite.height;
-
-    let frame = 0;
-
-if (wallSliding) {
-  frame = 3;
-} else if (!onGround) {
-  frame = 1;
-} else if (Math.abs(player.vx) > 0.2) {
-  frame = Math.floor(performance.now() / 150) % 2 + 1;
-}
-
-    const cropX = frame * frameWidth;
-    const cropY = 0;
-    const cropW = frameWidth;
-    const cropH = frameHeight;
-
-    ctx.drawImage(
-      sprite,
-      cropX, cropY,
-      cropW, cropH,
-      -drawWidth / 2, -drawHeight / 2,
-      drawWidth, drawHeight
-    );
-  } else {
-    ctx.fillStyle = "#1f2937";
-    ctx.fillRect(-12, -14, 24, 28);
-    ctx.fillStyle = "#22d3ee";
-    ctx.fillRect(-8, -4, 16, 4);
-  }
-
-  ctx.restore();
-}
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1962,10 +1940,7 @@ if (wallSliding) {
         const offsetY = (Math.random() - 0.5) * screenShake;
         ctx.translate(offsetX, offsetY);
         screenShake *= 0.85;
-
-        if (screenShake < 0.2) {
-          screenShake = 0;
-        }
+        if (screenShake < 0.2) screenShake = 0;
       }
 
       drawBackground();
@@ -2006,68 +1981,13 @@ if (wallSliding) {
       }
 
       draw();
-      animationFrameId = requestAnimationFrame(gameLoop);
+      requestAnimationFrame(gameLoop);
     }
 
     function startGameLoop() {
       if (gameLoopStarted) return;
       gameLoopStarted = true;
-      animationFrameId = requestAnimationFrame(gameLoop);
-    }
-
-    function queueJump() {
-      jumpBufferTimer = JUMP_BUFFER_FRAMES;
-    }
-
-    function tryJump() {
-      getAudioContext();
-
-      if (onGround || coyoteTimer > 0) {
-        player.vy = jumpPower;
-        onGround = false;
-        coyoteTimer = 0;
-        jumpBufferTimer = 0;
-        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Jumping";
-        playJumpSound();
-        return true;
-      }
-
-      if (wallSliding) {
-        player.vy = jumpPower * 0.9;
-
-        if (touchingWallLeft) {
-          player.vx = 6;
-          player.facing = 1;
-        } else if (touchingWallRight) {
-          player.vx = -6;
-          player.facing = -1;
-        }
-
-        wallSliding = false;
-        jumpBufferTimer = 0;
-        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Wall jump!";
-        playWallJumpSound();
-        return true;
-      }
-
-      return false;
-    }
-
-    function tryDash() {
-      if (dashCharges > 0 && !onGround && !isDashing) {
-        const dashSpeed = isMobileViewport() ? 15 : 10.5;
-        const dashFrames = isMobileViewport() ? 14 : 9;
-
-        dashCharges = 0;
-        dashText.textContent = dashCharges;
-        isDashing = true;
-        dashTimer = dashFrames;
-        player.vy = 0;
-        player.vx = player.facing * dashSpeed;
-        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Dash!";
-        playDashSound();
-        addScreenShake(4);
-      }
+      requestAnimationFrame(gameLoop);
     }
 
     function resetStick() {
@@ -2097,7 +2017,6 @@ if (wallSliding) {
 
       mobileMoveX = dx / maxDistance;
       if (Math.abs(mobileMoveX) < 0.08) mobileMoveX = 0;
-
       stickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
     }
 
@@ -2161,6 +2080,11 @@ if (wallSliding) {
       soundEnabled = !soundEnabled;
       soundButton.textContent = soundEnabled ? "Sound: On" : "Sound: Off";
       soundButton.blur();
+    });
+
+    skinButton.addEventListener("click", () => {
+      cycleSkin();
+      skinButton.blur();
     });
 
     if (goLevelButton && levelSelect) {
@@ -2263,6 +2187,7 @@ if (wallSliding) {
       event.preventDefault();
     }, { passive: false });
 
+    updateSkinUI();
     loadLevel(currentLevel);
     startGameLoop();
   </script>
