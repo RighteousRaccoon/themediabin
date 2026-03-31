@@ -1011,23 +1011,23 @@ function loadCurrentSkinSprite() {
   antiCheatRoof: { x: 0, y: 8, width: 1100, height: 14 },
   antiCheatTrigger: { xMin: 1040, yMax: 185 },
   antiCheatRoofTrigger: { yMax: 48 },
-  dashOrbs: [{ x: 520, y: 290, radius: 12 }],
+  dashOrbs: [{ x: 470, y: 325, radius: 12 }],
   saws: [
-    { x: 355, y: 430, axis: "x", range: 45, speed: 2.2, radius: 16, phase: 0 },
-    { x: 740, y: 220, axis: "y", range: 35, speed: 1.8, radius: 16, phase: 1.2 }
+    { x: 360, y: 430, axis: "x", range: 38, speed: 2.0, radius: 16, phase: 0 },
+    { x: 735, y: 230, axis: "y", range: 28, speed: 1.7, radius: 16, phase: 1.2 }
   ],
   lifts: [],
   platforms: [
     { x: 0, y: 510, width: 1100, height: 40 },
-    { x: 90, y: 460, width: 110, height: 20 },
-    { x: 270, y: 390, width: 120, height: 20 },
-    { x: 505, y: 315, width: 110, height: 20 },
-    { x: 700, y: 245, width: 120, height: 20 },
+    { x: 90, y: 460, width: 120, height: 20 },
+    { x: 255, y: 405, width: 145, height: 20 },
+    { x: 455, y: 340, width: 135, height: 20 },
+    { x: 680, y: 255, width: 130, height: 20 },
     { x: 900, y: 175, width: 110, height: 20 }
   ],
   spikes: [
-    { x: 215, y: 490, width: 50, height: 20 },
-    { x: 450, y: 490, width: 50, height: 20 },
+    { x: 220, y: 490, width: 50, height: 20 },
+    { x: 445, y: 490, width: 50, height: 20 },
     { x: 645, y: 490, width: 50, height: 20 }
   ]
 },
@@ -2153,22 +2153,24 @@ function stopBackgroundMusic() {
       }
 
       for (const orb of dashOrbs) {
-        if (orb.collected) continue;
+  if (orb.collected) continue;
 
-        const dx = player.x + player.width / 2 - orb.x;
-        const dy = player.y + player.height / 2 - orb.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+  const pickupPadding = 6;
+  const closestX = Math.max(player.x - pickupPadding, Math.min(orb.x, player.x + player.width + pickupPadding));
+  const closestY = Math.max(player.y - pickupPadding, Math.min(orb.y, player.y + player.height + pickupPadding));
+  const dx = orb.x - closestX;
+  const dy = orb.y - closestY;
 
-        if (dist < orb.radius + 10) {
-          orb.collected = true;
-          dashCharges = 1;
-          dashText.textContent = dashCharges;
-          statusText.textContent = "Dash charged!";
-          spawnOrbPickupParticles(orb.x, orb.y);
-          playOrbPickupSound();
-          addScreenShake(2);
-        }
-      }
+  if (dx * dx + dy * dy <= orb.radius * orb.radius) {
+    orb.collected = true;
+    dashCharges = 1;
+    dashText.textContent = dashCharges;
+    statusText.textContent = "Dash charged!";
+    spawnOrbPickupParticles(orb.x, orb.y);
+    playOrbPickupSound();
+    addScreenShake(2);
+  }
+}
 
       const probe = 2;
       for (const platform of activePlatforms) {
