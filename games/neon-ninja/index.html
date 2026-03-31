@@ -728,6 +728,7 @@ achievements = { ...defaultAchievements, ...achievements };
     let platforms = [];
     let spikes = [];
     let saws = [];
+    let lifts = [];
     let exitPortal = {};
     let mobileMoveX = 0;
     let stickActive = false;
@@ -1476,7 +1477,7 @@ function updateDashUI() {
   achievementToastTitle.textContent = title;
   achievementToastBody.textContent = body;
 
-  achievementToast.classList.remove("skin-blue", "skin-neon", "skin-gold");
+  achievementToast.classList.remove("skin-blue", "skin-neon", "skin-gold", "skin-ultimate");
   if (themeClass) {
     achievementToast.classList.add(themeClass);
   }
@@ -2073,6 +2074,7 @@ function drawLiftParticles() {
       platforms = level.platforms;
       spikes = level.spikes;
       saws = (level.saws || []).map(saw => ({ ...saw }));
+      lifts = (level.lifts || []).map(lift => ({ ...lift }));
       exitPortal = level.portal;
       dashOrbs = (level.dashOrbs || []).map(orb => ({ ...orb, collected: false }));
       currentTheme = level.theme || "cyan";
@@ -2926,6 +2928,7 @@ function drawSaws() {
       drawPlatforms();
       drawSpikes();
       drawSaws();
+      drawLifts();
       drawDashOrbs();
       drawExitPortal();
       drawDashTrailParticles();
