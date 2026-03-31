@@ -578,13 +578,24 @@ const achievementToastBody = document.getElementById("achievementToastBody");
 const dashHud = document.getElementById("dashHud");
 const dashControlsLine = document.getElementById("dashControlsLine");
 
-   const ninjaSprite = new Image();
-ninjaSprite.src = "/games/assets/ninja_fixed_aligned.png?v=1";
+   const skinSpritePaths = {
+  default: "/games/assets/neon-ninja/ninja_default.png?v=1",
+  blue: "/games/assets/neon-ninja/ninja_blue.png?v=1",
+  neon: "/games/assets/neon-ninja/ninja_neon.png?v=1",
+  gold: "/games/assets/neon-ninja/ninja_gold.png?v=1"
+};
+
+const ninjaSprite = new Image();
 let processedNinjaSprite = null;
 
+function loadCurrentSkinSprite() {
+  processedNinjaSprite = null;
+  ninjaSprite.src = skinSpritePaths[selectedSkin] || skinSpritePaths.default;
+}
+
 ninjaSprite.onload = () => {
-  console.log("ninja sprite loaded", ninjaSprite.width, ninjaSprite.height);
   processedNinjaSprite = ninjaSprite;
+  console.log("loaded skin sprite:", selectedSkin, ninjaSprite.width, ninjaSprite.height);
 };
 
 ninjaSprite.onerror = () => {
@@ -610,11 +621,11 @@ ninjaSprite.onerror = () => {
     let achievements = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)) || { ...defaultAchievements };
 
     const skins = {
-      default: { name: "Default", tint: null },
-      blue: { name: "Blue", tint: "rgba(56, 189, 248, 0.16)" },
-      neon: { name: "Neon", tint: "rgba(34, 211, 238, 0.16)" },
-      gold: { name: "Gold", tint: "rgba(245, 158, 11, 0.18)" }
-    };
+  default: { name: "Default" },
+  blue: { name: "Blue" },
+  neon: { name: "Neon" },
+  gold: { name: "Gold" }
+};
 
     let selectedSkin = localStorage.getItem(SKIN_KEY) || "default";
 
@@ -1023,12 +1034,15 @@ ninjaSprite.onerror = () => {
 
     function updateSkinUI() {
   const unlocked = getUnlockedSkins();
+
   if (!unlocked.includes(selectedSkin)) {
     selectedSkin = "default";
     saveSelectedSkin();
   }
+
   skinText.textContent = skins[selectedSkin].name;
   updateSkinUnlockPanel();
+  loadCurrentSkinSprite();
 }
 
     function cycleSkin() {
@@ -2110,14 +2124,6 @@ function updateDashUI() {
           drawWidth, drawHeight
         );
 
-        const skin = skins[selectedSkin] || skins.default;
-        if (skin.tint) {
-          ctx.save();
-          ctx.globalCompositeOperation = "source-atop";
-          ctx.fillStyle = skin.tint;
-          ctx.fillRect(-drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-          ctx.restore();
-        }
       } else {
         ctx.fillStyle = "#1f2937";
         ctx.fillRect(-12, -14, 24, 28);
@@ -2386,8 +2392,8 @@ function updateDashUI() {
     }, { passive: false });
 
     updateSkinUI();
-    loadLevel(currentLevel);
-    startGameLoop();
+loadLevel(currentLevel);
+startGameLoop();
   </script>
 </body>
 </html>
