@@ -30,7 +30,7 @@
       margin-bottom: 10px;
       font-size: 2.4rem;
     }
-    
+
     p {
       color: #cbd5e1;
       margin-bottom: 20px;
@@ -602,11 +602,11 @@ const achievementToastLabel = document.getElementById("achievementToastLabel");
 const dashHud = document.getElementById("dashHud");
 const dashControlsLine = document.getElementById("dashControlsLine");
 
-   const skinSpritePaths = {
-  default: "/games/assets/neon-ninja/ninja_default.png?v=1",
-  blue: "/games/assets/neon-ninja/ninja_blue.png?v=1",
-  neon: "/games/assets/neon-ninja/ninja_neon.png?v=1",
-  gold: "/games/assets/neon-ninja/ninja_gold.png?v=1"
+  const skinSpritePaths = {
+  default: "/games/assets/neon-ninja/ninja_default.png",
+  blue: "/games/assets/neon-ninja/ninja_blue.png",
+  neon: "/games/assets/neon-ninja/ninja_neon.png",
+  gold: "/games/assets/neon-ninja/ninja_gold.png"
 };
 
 const ninjaSprite = new Image();
@@ -675,6 +675,9 @@ function loadCurrentSkinSprite() {
     let celebrationParticles = [];
     let audioContext = null;
     let soundEnabled = true;
+    let musicStarted = false;
+    let musicStep = 0;
+    let musicInterval = null;
     let dashCharges = 0;
     let isDashing = false;
     let dashTimer = 0;
