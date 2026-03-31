@@ -2852,53 +2852,80 @@ function drawSaws() {
     frame = Math.floor(performance.now() / 150) % 2 + 1;
   }
 
-  if (selectedSkin === "gold") {
-    ctx.save();
-    ctx.globalAlpha = 0.28;
-    ctx.shadowBlur = 14;
-    ctx.shadowColor = "#ffd84d";
-    ctx.fillStyle = "#ffd84d";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 18, 22, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  if (selectedSkin === "ultimate") {
-    const hue = (performance.now() * 0.08) % 360;
-    const glowColor = `hsl(${hue}, 100%, 70%)`;
-
-    ctx.save();
-    ctx.globalAlpha = 0.34;
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = glowColor;
-    ctx.fillStyle = glowColor;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 20, 24, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
   if (sprite && sprite.width > 0) {
     const frameWidth = Math.floor(sprite.width / 4);
     const frameHeight = sprite.height;
 
+    const dx = -drawWidth / 2;
+    const dy = -drawHeight / 2;
+
+    // Natural sprite-shaped glow / outline
+    if (selectedSkin === "gold" || selectedSkin === "ultimate") {
+      const glowColor = selectedSkin === "gold"
+        ? "#ffd84d"
+        : `hsl(${(performance.now() * 0.08) % 360}, 100%, 70%)`;
+
+      const pulse = selectedSkin === "gold"
+        ? (0.82 + Math.sin(performance.now() * 0.008) * 0.08)
+        : (0.9 + Math.sin(performance.now() * 0.012) * 0.12);
+
+      ctx.save();
+      ctx.globalAlpha = selectedSkin === "gold" ? 0.32 : 0.28;
+
+      const offsets = [
+        [-1.5 * pulse, 0],
+        [1.5 * pulse, 0],
+        [0, -1.5 * pulse],
+        [0, 1.5 * pulse],
+        [-1.1 * pulse, -1.1 * pulse],
+        [1.1 * pulse, -1.1 * pulse],
+        [-1.1 * pulse, 1.1 * pulse],
+        [1.1 * pulse, 1.1 * pulse]
+      ];
+
+      for (const [ox, oy] of offsets) {
+        ctx.save();
+        ctx.shadowBlur = selectedSkin === "gold" ? 8 : 10;
+        ctx.shadowColor = glowColor;
+        ctx.drawImage(
+          sprite,
+          frame * frameWidth, 0,
+          frameWidth, frameHeight,
+          dx + ox, dy + oy,
+          drawWidth, drawHeight
+        );
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    // Main sprite
     ctx.drawImage(
       sprite,
       frame * frameWidth, 0,
       frameWidth, frameHeight,
-      -drawWidth / 2, -drawHeight / 2,
+      dx, dy,
       drawWidth, drawHeight
     );
 
+    // Very light animated highlight for ultimate, clipped to sprite shape
     if (selectedSkin === "ultimate") {
       const hue = (performance.now() * 0.08) % 360;
-      const overlayColor = `hsla(${hue}, 100%, 70%, 0.16)`;
+      const shimmerColor = `hsla(${hue}, 100%, 75%, 0.12)`;
 
       ctx.save();
       ctx.globalCompositeOperation = "source-atop";
-      ctx.fillStyle = overlayColor;
-      ctx.fillRect(-drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+      ctx.fillStyle = shimmerColor;
+
+      ctx.beginPath();
+      ctx.moveTo(dx + 6, dy + 8);
+      ctx.lineTo(dx + drawWidth - 6, dy + 2);
+      ctx.lineTo(dx + drawWidth - 14, dy + drawHeight - 6);
+      ctx.lineTo(dx + 2, dy + drawHeight - 2);
+      ctx.closePath();
+      ctx.fill();
+
       ctx.restore();
     }
   } else {
