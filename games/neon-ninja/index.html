@@ -249,23 +249,30 @@
       border: 1px solid rgba(148, 163, 184, 0.3);
       backdrop-filter: blur(2px);
     }
-    .achievement-toast {
+   .achievement-toast {
   position: fixed;
   right: 24px;
   top: 24px;
-  min-width: 260px;
-  max-width: 360px;
+  min-width: 280px;
+  max-width: 380px;
   padding: 14px 16px;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.94);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.97), rgba(30, 41, 59, 0.95));
   border: 1px solid rgba(56, 189, 248, 0.35);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.34),
+    0 0 0 rgba(0, 0, 0, 0);
   color: white;
   z-index: 9999;
   opacity: 0;
-  transform: translateY(-12px) scale(0.98);
+  transform: translateY(-16px) scale(0.94);
   pointer-events: none;
-  transition: opacity 220ms ease, transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease,
+    border-color 240ms ease,
+    box-shadow 240ms ease;
 }
 
 .achievement-toast.show {
@@ -273,22 +280,33 @@
   transform: translateY(0) scale(1);
 }
 
-.achievement-toast-title {
+.achievement-toast-label {
+  font-size: 0.72rem;
   font-weight: 700;
-  font-size: 1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+}
+
+.achievement-toast-title {
+  font-weight: 800;
+  font-size: 1.05rem;
   color: #67e8f9;
   margin-bottom: 6px;
 }
 
 .achievement-toast-body {
   color: #e2e8f0;
-  line-height: 1.4;
+  line-height: 1.45;
   font-size: 0.94rem;
 }
 
 .achievement-toast.skin-blue {
-  border-color: rgba(56, 189, 248, 0.6);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3), 0 0 18px rgba(56, 189, 248, 0.28);
+  border-color: rgba(56, 189, 248, 0.7);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.34),
+    0 0 22px rgba(56, 189, 248, 0.28);
 }
 
 .achievement-toast.skin-blue .achievement-toast-title {
@@ -296,8 +314,10 @@
 }
 
 .achievement-toast.skin-neon {
-  border-color: rgba(34, 211, 238, 0.6);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3), 0 0 18px rgba(34, 211, 238, 0.28);
+  border-color: rgba(34, 211, 238, 0.75);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.34),
+    0 0 24px rgba(34, 211, 238, 0.3);
 }
 
 .achievement-toast.skin-neon .achievement-toast-title {
@@ -305,8 +325,10 @@
 }
 
 .achievement-toast.skin-gold {
-  border-color: rgba(245, 158, 11, 0.6);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3), 0 0 18px rgba(245, 158, 11, 0.3);
+  border-color: rgba(245, 158, 11, 0.78);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.34),
+    0 0 26px rgba(245, 158, 11, 0.34);
 }
 
 .achievement-toast.skin-gold .achievement-toast-title {
@@ -470,8 +492,9 @@
     <div class="game-box" id="gameBox">
 
       <div id="achievementToast" class="achievement-toast">
-  <div id="achievementToastTitle" class="achievement-toast-title">Achievement Unlocked!</div>
-  <div id="achievementToastBody" class="achievement-toast-body">You unlocked something.</div>
+  <div id="achievementToastLabel" class="achievement-toast-label">Achievement Unlocked</div>
+  <div id="achievementToastTitle" class="achievement-toast-title">New Unlock</div>
+  <div id="achievementToastBody" class="achievement-toast-body">You unlocked something cool.</div>
 </div>
 
       <div class="hud hud-top">
@@ -525,7 +548,7 @@
       <div class="controls" id="controlsText">
   Move: A / D or Arrow Keys<br />
   Jump: Space / W / Arrow Up<br />
-  <span id="dashControlsLine">Dash: X / Shift<br /></span>
+  <span id="dashControlsLine">Dash: F / Shift<br /></span>
   Restart: R
 </div>
 
@@ -575,6 +598,7 @@
     const achievementToast = document.getElementById("achievementToast");
 const achievementToastTitle = document.getElementById("achievementToastTitle");
 const achievementToastBody = document.getElementById("achievementToastBody");
+const achievementToastLabel = document.getElementById("achievementToastLabel");
 const dashHud = document.getElementById("dashHud");
 const dashControlsLine = document.getElementById("dashControlsLine");
 
@@ -1075,20 +1099,20 @@ function updateDashUI() {
 
   if (key === "beatLevel3") {
     showAchievementToast(
-      "Achievement Unlocked!",
-      "Beat Level 3 - Blue Skin unlocked.",
+      "Blue Skin Unlocked",
+      "You cleared Level 3 and unlocked the Blue ninja skin.",
       "skin-blue"
     );
   } else if (key === "sub10Level1") {
     showAchievementToast(
-      "Achievement Unlocked!",
-      "Beat Level 1 under 10s - Neon Skin unlocked.",
+      "Neon Skin Unlocked",
+      "You beat Level 1 in under 10 seconds and unlocked the Neon skin.",
       "skin-neon"
     );
   } else if (key === "beatAllLevels") {
     showAchievementToast(
-      "Achievement Unlocked!",
-      "Beat all levels - Gold Skin unlocked.",
+      "Gold Skin Unlocked",
+      "You conquered every level and unlocked the legendary Gold skin.",
       "skin-gold"
     );
   }
@@ -2235,9 +2259,9 @@ function updateDashUI() {
       if (key === "a" || event.key === "ArrowLeft") keys.left = true;
       if (key === "d" || event.key === "ArrowRight") keys.right = true;
 
-      if (key === "x" || event.key === "Shift") {
-        tryDash();
-      }
+      if (key === "f" || event.key === "Shift") {
+  tryDash();
+}
 
       if (key === "w" || key === " " || event.key === "ArrowUp") {
         queueJump();
@@ -2283,8 +2307,6 @@ function updateDashUI() {
     });
 
     skinButton.addEventListener("click", () => {
-  const previousSkin = selectedSkin;
-
   cycleSkin();
 
   if (selectedSkin === "gold") {
@@ -2293,6 +2315,9 @@ function updateDashUI() {
   } else if (selectedSkin === "neon") {
     addScreenShake(3);
     playTone(800, 0.05, "triangle", 0.03);
+  } else if (selectedSkin === "blue") {
+    addScreenShake(3);
+    playTone(760, 0.05, "triangle", 0.03);
   } else {
     addScreenShake(2);
     playTone(700, 0.05, "triangle", 0.03);
