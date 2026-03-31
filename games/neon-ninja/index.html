@@ -656,6 +656,9 @@ function loadCurrentSkinSprite() {
 
     const ACHIEVEMENTS_KEY = "neonNinjaAchievements";
     const SKIN_KEY = "neonNinjaSelectedSkin";
+    const BEST_TIMES_KEY = "neonNinjaBestTimes";
+
+let bestTimes = JSON.parse(localStorage.getItem(BEST_TIMES_KEY)) || {};
 
     const defaultAchievements = {
   beatLevel3: false,
@@ -708,6 +711,7 @@ achievements = { ...defaultAchievements, ...achievements };
     let musicInterval = null;
     let musicBar = 0;
     let musicVariant = 0;
+    let newUnlock = key;
     let dashCharges = 0;
     let isDashing = false;
     let dashTimer = 0;
@@ -747,7 +751,10 @@ achievements = { ...defaultAchievements, ...achievements };
     let antiCheatRoofTimer = 0;
     let achievementToastTimer = null;
 
-    bestTimeText.textContent = bestTime ? bestTime.toFixed(3) + "s" : "--";
+    const levelKey = `level_${currentLevel}`;
+const levelBest = bestTimes[levelKey];
+
+bestTimeText.textContent = "--";
 
     const levels = [
  {
@@ -1398,6 +1405,10 @@ achievements = { ...defaultAchievements, ...achievements };
     selectedSkin = "default";
     saveSelectedSkin();
   }
+
+  if (selectedSkin === "ultimate" && achievements.unlockUltimate) {
+  skinText.textContent += " ✨";
+}
 
   skinText.textContent = skins[selectedSkin].name;
   updateSkinUnlockPanel();
@@ -2053,6 +2064,13 @@ function drawLiftParticles() {
         statusText.textContent = "New best time!";
       }
 
+      const levelKey = `level_${currentLevel}`;
+
+if (!bestTimes[levelKey] || currentTime < bestTimes[levelKey]) {
+  bestTimes[levelKey] = currentTime;
+  localStorage.setItem(BEST_TIMES_KEY, JSON.stringify(bestTimes));
+}
+
       spawnCelebration(exitPortal.x + exitPortal.width / 2, exitPortal.y + exitPortal.height / 2);
       checkAchievementsOnLevelComplete();
 
@@ -2061,11 +2079,15 @@ function drawLiftParticles() {
           currentLevel += 1;
           loadLevel(currentLevel);
         } else {
-          statusText.textContent = "You beat all levels!";
-          currentLevel = 0;
-          setTimeout(() => loadLevel(currentLevel), 700);
-        }
-      }, 900);
+          statusText.textContent = "You beat the game!";
+
+setTimeout(() => {
+  showAchievementToast(
+    "Game Complete",
+    "You cleared all 20 levels. Absolute legend.",
+    "skin-ultimate"
+  );
+}, 300);
     }
 
     function loadLevel(index) {
@@ -2129,6 +2151,10 @@ function drawLiftParticles() {
       levelText.textContent = String(index + 1);
       levelSelect.value = String(index);
       statusText.textContent = "Ready";
+
+      const levelKey = `level_${index}`;
+const levelBest = bestTimes[levelKey];
+bestTimeText.textContent = levelBest ? levelBest.toFixed(3) + "s" : "--";
     }
 
     function resetLevel() {
