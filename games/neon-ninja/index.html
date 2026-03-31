@@ -335,6 +335,19 @@
   color: #f59e0b;
 }
 
+.achievement-toast.skin-ultimate {
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.34),
+    0 0 10px rgba(255, 0, 128, 0.28),
+    0 0 18px rgba(0, 255, 255, 0.24),
+    0 0 28px rgba(255, 255, 0, 0.22);
+}
+
+.achievement-toast.skin-ultimate .achievement-toast-title {
+  color: #ffffff;
+}
+
 @media (max-width: 900px) {
   .achievement-toast {
     right: 12px;
@@ -611,7 +624,8 @@ const dashControlsLine = document.getElementById("dashControlsLine");
   default: "/games/assets/neon-ninja/ninja_default.png",
   blue: "/games/assets/neon-ninja/ninja_blue.png",
   neon: "/games/assets/neon-ninja/ninja_neon.png",
-  gold: "/games/assets/neon-ninja/ninja_gold.png"
+  gold: "/games/assets/neon-ninja/ninja_gold.png",
+  ultimate: "/games/assets/neon-ninja/ninja_ultimate.png"
 };
 
 const ninjaSprite = new Image();
@@ -638,18 +652,21 @@ function loadCurrentSkinSprite() {
     const SKIN_KEY = "neonNinjaSelectedSkin";
 
     const defaultAchievements = {
-      beatLevel3: false,
-      beatAllLevels: false,
-      sub10Level1: false
-    };
+  beatLevel3: false,
+  beatAllLevels: false,
+  sub10Level1: false,
+  unlockUltimate: false
+};
 
     let achievements = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)) || { ...defaultAchievements };
+achievements = { ...defaultAchievements, ...achievements };
 
-    const skins = {
+  const skins = {
   default: { name: "Default" },
   blue: { name: "Blue" },
   neon: { name: "Neon" },
-  gold: { name: "Gold" }
+  gold: { name: "Gold" },
+  ultimate: { name: "Ultimate" }
 };
 
     let selectedSkin = localStorage.getItem(SKIN_KEY) || "default";
@@ -1196,7 +1213,8 @@ function loadCurrentSkinSprite() {
     `Default - available`,
     `Blue - ${unlocked.includes("blue") ? "unlocked" : "Beat Level 3"}`,
     `Neon - ${unlocked.includes("neon") ? "unlocked" : "Beat Level 1 under 10s"}`,
-    `Gold - ${unlocked.includes("gold") ? "unlocked" : "Beat all levels"}`
+    `Gold - ${unlocked.includes("gold") ? "unlocked" : "Beat all levels"}`,
+    `Ultimate - ${unlocked.includes("ultimate") ? "unlocked" : "Unlock every other skin"}`
   ];
 
   const panel = document.getElementById("skinUnlocksPanel");
@@ -1206,12 +1224,13 @@ function loadCurrentSkinSprite() {
 }
 
     function getUnlockedSkins() {
-      const unlocked = ["default"];
-      if (achievements.beatLevel3) unlocked.push("blue");
-      if (achievements.sub10Level1) unlocked.push("neon");
-      if (achievements.beatAllLevels) unlocked.push("gold");
-      return unlocked;
-    }
+  const unlocked = ["default"];
+  if (achievements.beatLevel3) unlocked.push("blue");
+  if (achievements.sub10Level1) unlocked.push("neon");
+  if (achievements.beatAllLevels) unlocked.push("gold");
+  if (achievements.unlockUltimate) unlocked.push("ultimate");
+  return unlocked;
+}
 
     function updateSkinUI() {
   const unlocked = getUnlockedSkins();
@@ -1276,14 +1295,22 @@ function updateDashUI() {
       "You conquered every level and unlocked the legendary Gold skin.",
       "skin-gold"
     );
+  } else if (key === "unlockUltimate") {
+    showAchievementToast(
+  "Ultimate Skin Unlocked",
+  "You mastered every challenge and unlocked the Ultimate rainbow skin.",
+  "skin-ultimate"
+);
   }
 }
 
     function checkAchievementsOnLevelComplete() {
-      if (currentLevel === 0 && currentTime < 10) unlockAchievement("sub10Level1");
-      if (currentLevel === 2) unlockAchievement("beatLevel3");
-      if (currentLevel === levels.length - 1) unlockAchievement("beatAllLevels");
-    }
+  if (currentLevel === 0 && currentTime < 10) unlockAchievement("sub10Level1");
+  if (currentLevel === 2) unlockAchievement("beatLevel3");
+  if (currentLevel === levels.length - 1) unlockAchievement("beatAllLevels");
+
+  checkUltimateUnlock();
+}
 
     function showAchievementToast(title, body, themeClass = "") {
   if (!achievementToast || !achievementToastTitle || !achievementToastBody) return;
@@ -1556,6 +1583,16 @@ function stopBackgroundMusic() {
         });
       }
     }
+  
+    function checkUltimateUnlock() {
+  if (
+    achievements.beatLevel3 &&
+    achievements.beatAllLevels &&
+    achievements.sub10Level1
+  ) {
+    unlockAchievement("unlockUltimate");
+  }
+}
 
     function spawnDeathParticles(x, y) {
       const colors = currentTheme === "magenta"
@@ -2534,47 +2571,84 @@ function drawSaws() {
     }
 
     function drawPlayer() {
-      const sprite = processedNinjaSprite || ninjaSprite;
-      const drawWidth = 44;
-      const drawHeight = 60;
+  const sprite = processedNinjaSprite || ninjaSprite;
+  const drawWidth = 44;
+  const drawHeight = 60;
+
+  ctx.save();
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 10);
+
+  if (player.facing < 0) {
+    ctx.scale(-1, 1);
+  }
+
+  let frame = 0;
+  if (wallSliding) {
+    frame = 3;
+  } else if (!onGround) {
+    frame = 1;
+  } else if (Math.abs(player.vx) > 0.2) {
+    frame = Math.floor(performance.now() / 150) % 2 + 1;
+  }
+
+  if (selectedSkin === "gold") {
+    ctx.save();
+    ctx.globalAlpha = 0.28;
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = "#ffd84d";
+    ctx.fillStyle = "#ffd84d";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 18, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  if (selectedSkin === "ultimate") {
+    const hue = (performance.now() * 0.08) % 360;
+    const glowColor = `hsl(${hue}, 100%, 70%)`;
+
+    ctx.save();
+    ctx.globalAlpha = 0.34;
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = glowColor;
+    ctx.fillStyle = glowColor;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 20, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  if (sprite && sprite.width > 0) {
+    const frameWidth = Math.floor(sprite.width / 4);
+    const frameHeight = sprite.height;
+
+    ctx.drawImage(
+      sprite,
+      frame * frameWidth, 0,
+      frameWidth, frameHeight,
+      -drawWidth / 2, -drawHeight / 2,
+      drawWidth, drawHeight
+    );
+
+    if (selectedSkin === "ultimate") {
+      const hue = (performance.now() * 0.08) % 360;
+      const overlayColor = `hsla(${hue}, 100%, 70%, 0.16)`;
 
       ctx.save();
-      ctx.translate(player.x + player.width / 2, player.y + player.height / 2 - 10);
-
-      if (player.facing < 0) {
-        ctx.scale(-1, 1);
-      }
-
-      if (sprite && sprite.width > 0) {
-        const frameWidth = Math.floor(sprite.width / 4);
-        const frameHeight = sprite.height;
-
-        let frame = 0;
-        if (wallSliding) {
-          frame = 3;
-        } else if (!onGround) {
-          frame = 1;
-        } else if (Math.abs(player.vx) > 0.2) {
-          frame = Math.floor(performance.now() / 150) % 2 + 1;
-        }
-
-        ctx.drawImage(
-          sprite,
-          frame * frameWidth, 0,
-          frameWidth, frameHeight,
-          -drawWidth / 2, -drawHeight / 2,
-          drawWidth, drawHeight
-        );
-
-      } else {
-        ctx.fillStyle = "#1f2937";
-        ctx.fillRect(-12, -14, 24, 28);
-        ctx.fillStyle = "#22d3ee";
-        ctx.fillRect(-8, -4, 16, 4);
-      }
-
+      ctx.globalCompositeOperation = "source-atop";
+      ctx.fillStyle = overlayColor;
+      ctx.fillRect(-drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
       ctx.restore();
     }
+  } else {
+    ctx.fillStyle = "#1f2937";
+    ctx.fillRect(-12, -14, 24, 28);
+    ctx.fillStyle = selectedSkin === "gold" ? "#ffd84d" : "#22d3ee";
+    ctx.fillRect(-8, -4, 16, 4);
+  }
+
+  ctx.restore();
+}
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2739,7 +2813,12 @@ function drawSaws() {
     skinButton.addEventListener("click", () => {
   cycleSkin();
 
-  if (selectedSkin === "gold") {
+  if (selectedSkin === "ultimate") {
+    addScreenShake(6);
+    playTone(740, 0.05, "triangle", 0.03);
+    setTimeout(() => playTone(987, 0.05, "triangle", 0.025), 45);
+    setTimeout(() => playTone(1318, 0.08, "triangle", 0.02), 95);
+  } else if (selectedSkin === "gold") {
     addScreenShake(5);
     playTone(900, 0.06, "triangle", 0.04);
   } else if (selectedSkin === "neon") {
