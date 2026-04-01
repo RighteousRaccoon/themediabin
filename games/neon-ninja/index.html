@@ -2200,7 +2200,7 @@ bestTimeText.textContent = levelBest ? levelBest.toFixed(3) + "s" : "--";
       const fallSpeedBeforeCollision = player.vy;
 
       const activePlatforms = [...platforms];
-      if (antiCheatPlatformActive && antiCheatPlatform) activePlatforms.push(antiCheatPlatform);
+      
       if (antiCheatRoofActive && antiCheatRoof) activePlatforms.push(antiCheatRoof);
 
       player.x += player.vx;
@@ -2287,14 +2287,17 @@ bestTimeText.textContent = levelBest ? levelBest.toFixed(3) + "s" : "--";
       }
 
       if (
-        antiCheatTrigger &&
-        !antiCheatPlatformActive &&
-        player.x + player.width > antiCheatTrigger.xMin &&
-        player.y < antiCheatTrigger.yMax &&
-        !onGround
-      ) {
-        antiCheatPlatformActive = true;
-        antiCheatPlatformTimer = 180;
+  antiCheatTrigger &&
+  player.x + player.width > antiCheatTrigger.xMin &&
+  player.y < antiCheatTrigger.yMax &&
+  !onGround
+) {
+  statusText.textContent = "No cheating";
+  addScreenShake(6);
+  die();
+  return;
+}
+       
         antiCheatMessageTimer = 90;
         antiCheatFlickerTimer = 28;
         statusText.textContent = "No cheating";
