@@ -2130,317 +2130,312 @@ bestTimeText.textContent = levelBest ? levelBest.toFixed(3) + "s" : "--";
     }
 
     function updatePlayer() {
-      if (levelEnding || deathResetTimer > 0) return;
+  if (levelEnding || deathResetTimer > 0) return;
 
-      if (jumpBufferTimer > 0) jumpBufferTimer--;
-      if (coyoteTimer > 0) coyoteTimer--;
-      if (antiCheatMessageTimer > 0) antiCheatMessageTimer--;
-      if (antiCheatFlickerTimer > 0) antiCheatFlickerTimer--;
+  if (jumpBufferTimer > 0) jumpBufferTimer--;
+  if (coyoteTimer > 0) coyoteTimer--;
+  if (antiCheatMessageTimer > 0) antiCheatMessageTimer--;
+  if (antiCheatFlickerTimer > 0) antiCheatFlickerTimer--;
 
-      if (antiCheatPlatformTimer > 0) {
-        antiCheatPlatformTimer--;
-        if (antiCheatPlatformTimer <= 0) antiCheatPlatformActive = false;
-      }
+  if (antiCheatPlatformTimer > 0) {
+    antiCheatPlatformTimer--;
+    if (antiCheatPlatformTimer <= 0) antiCheatPlatformActive = false;
+  }
 
-      if (antiCheatRoofTimer > 0) {
-        antiCheatRoofTimer--;
-        if (antiCheatRoofTimer <= 0) antiCheatRoofActive = false;
-      }
+  if (antiCheatRoofTimer > 0) {
+    antiCheatRoofTimer--;
+    if (antiCheatRoofTimer <= 0) antiCheatRoofActive = false;
+  }
 
-      touchingWallLeft = false;
-      touchingWallRight = false;
-      wallSliding = false;
+  touchingWallLeft = false;
+  touchingWallRight = false;
+  wallSliding = false;
 
-      if (dashTimer > 0) {
-        dashTimer--;
-        if (dashTimer <= 0) isDashing = false;
-      }
+  if (dashTimer > 0) {
+    dashTimer--;
+    if (dashTimer <= 0) isDashing = false;
+  }
 
-      if (isDashing) {
-        spawnDashTrailParticle(
-          player.x + player.width / 2 + (Math.random() - 0.5) * 8,
-          player.y + player.height / 2 + (Math.random() - 0.5) * 10
-        );
-      }
+  if (isDashing) {
+    spawnDashTrailParticle(
+      player.x + player.width / 2 + (Math.random() - 0.5) * 8,
+      player.y + player.height / 2 + (Math.random() - 0.5) * 10
+    );
+  }
 
-      const moveAccel = getMoveAcceleration();
-      const moveCap = getMoveMaxSpeed();
-      const moveFriction = getGroundFriction();
+  const moveAccel = getMoveAcceleration();
+  const moveCap = getMoveMaxSpeed();
+  const moveFriction = getGroundFriction();
 
-      if (!isDashing) {
-        if (keys.left) {
-          player.vx -= moveAccel;
-          player.facing = -1;
-        }
-        if (keys.right) {
-          player.vx += moveAccel;
-          player.facing = 1;
-        }
+  if (!isDashing) {
+    if (keys.left) {
+      player.vx -= moveAccel;
+      player.facing = -1;
+    }
+    if (keys.right) {
+      player.vx += moveAccel;
+      player.facing = 1;
+    }
 
-        if (isMobileViewport() && Math.abs(mobileMoveX) > 0.05) {
-          player.vx += mobileMoveX * moveAccel;
-          if (mobileMoveX < -0.1) player.facing = -1;
-          if (mobileMoveX > 0.1) player.facing = 1;
-        }
-      }
+    if (isMobileViewport() && Math.abs(mobileMoveX) > 0.05) {
+      player.vx += mobileMoveX * moveAccel;
+      if (mobileMoveX < -0.1) player.facing = -1;
+      if (mobileMoveX > 0.1) player.facing = 1;
+    }
+  }
 
-      if (!isDashing) {
-        if (player.vx > moveCap) player.vx = moveCap;
-        if (player.vx < -moveCap) player.vx = -moveCap;
-      }
+  if (!isDashing) {
+    if (player.vx > moveCap) player.vx = moveCap;
+    if (player.vx < -moveCap) player.vx = -moveCap;
+  }
 
-      if (!isDashing) {
-        player.vy += gravity;
-        if (player.vy > maxFallSpeed) player.vy = maxFallSpeed;
-      }
+  if (!isDashing) {
+    player.vy += gravity;
+    if (player.vy > maxFallSpeed) player.vy = maxFallSpeed;
+  }
 
-      const prevX = player.x;
-      const prevY = player.y;
-      const wasOnGround = onGround;
-      const fallSpeedBeforeCollision = player.vy;
+  const prevX = player.x;
+  const prevY = player.y;
+  const wasOnGround = onGround;
+  const fallSpeedBeforeCollision = player.vy;
 
-      const activePlatforms = [...platforms];
-      
-      if (antiCheatRoofActive && antiCheatRoof) activePlatforms.push(antiCheatRoof);
+  const activePlatforms = [...platforms];
+  if (antiCheatRoofActive && antiCheatRoof) activePlatforms.push(antiCheatRoof);
 
-      player.x += player.vx;
+  player.x += player.vx;
 
-      for (const platform of activePlatforms) {
-        if (rectOverlap(
-          player.x, player.y, player.width, player.height,
-          platform.x, platform.y, platform.width, platform.height
-        )) {
-          if (prevX + player.width <= platform.x) {
-            player.x = platform.x - player.width;
-            player.vx = 0;
-          } else if (prevX >= platform.x + platform.width) {
-            player.x = platform.x + platform.width;
-            player.vx = 0;
-          }
-        }
-      }
-
-      player.y += player.vy;
-      onGround = false;
-
-      for (const platform of activePlatforms) {
-        if (rectOverlap(
-          player.x, player.y, player.width, player.height,
-          platform.x, platform.y, platform.width, platform.height
-        )) {
-          if (prevY + player.height <= platform.y) {
-            player.y = platform.y - player.height;
-            player.vy = 0;
-            onGround = true;
-          } else if (prevY >= platform.y + platform.height) {
-            player.y = platform.y + platform.height;
-            player.vy = 0;
-          }
-        }
-      }
-
-      for (const lift of lifts) {
-  if (rectOverlap(
-    player.x, player.y, player.width, player.height,
-    lift.x, lift.y, lift.width, lift.height
-  )) {
-    const boostPower = lift.power ?? -13.5;
-
-    if (player.vy > boostPower) {
-      player.vy = boostPower;
-      onGround = false;
-      coyoteTimer = 0;
-      statusText.textContent = "Lift!";
-      if (Math.random() < 0.35) {
-        playTone(880, 0.03, "triangle", 0.01);
+  for (const platform of activePlatforms) {
+    if (rectOverlap(
+      player.x, player.y, player.width, player.height,
+      platform.x, platform.y, platform.width, platform.height
+    )) {
+      if (prevX + player.width <= platform.x) {
+        player.x = platform.x - player.width;
+        player.vx = 0;
+      } else if (prevX >= platform.x + platform.width) {
+        player.x = platform.x + platform.width;
+        player.vx = 0;
       }
     }
   }
-}
 
-      for (const saw of saws) {
-  const pos = getSawPosition(saw);
-  const radius = saw.radius || 16;
+  player.y += player.vy;
+  onGround = false;
 
-  const closestX = Math.max(player.x, Math.min(pos.x, player.x + player.width));
-  const closestY = Math.max(player.y, Math.min(pos.y, player.y + player.height));
-  const dx = pos.x - closestX;
-  const dy = pos.y - closestY;
+  for (const platform of activePlatforms) {
+    if (rectOverlap(
+      player.x, player.y, player.width, player.height,
+      platform.x, platform.y, platform.width, platform.height
+    )) {
+      if (prevY + player.height <= platform.y) {
+        player.y = platform.y - player.height;
+        player.vy = 0;
+        onGround = true;
+      } else if (prevY >= platform.y + platform.height) {
+        player.y = platform.y + platform.height;
+        player.vy = 0;
+      }
+    }
+  }
 
-  if (dx * dx + dy * dy < radius * radius) {
+  for (const lift of lifts) {
+    if (rectOverlap(
+      player.x, player.y, player.width, player.height,
+      lift.x, lift.y, lift.width, lift.height
+    )) {
+      const boostPower = lift.power ?? -13.5;
+
+      if (player.vy > boostPower) {
+        player.vy = boostPower;
+        onGround = false;
+        coyoteTimer = 0;
+        statusText.textContent = "Lift!";
+        if (Math.random() < 0.35) {
+          playTone(880, 0.03, "triangle", 0.01);
+        }
+      }
+    }
+  }
+
+  for (const saw of saws) {
+    const pos = getSawPosition(saw);
+    const radius = saw.radius || 16;
+
+    const closestX = Math.max(player.x, Math.min(pos.x, player.x + player.width));
+    const closestY = Math.max(player.y, Math.min(pos.y, player.y + player.height));
+    const dx = pos.x - closestX;
+    const dy = pos.y - closestY;
+
+    if (dx * dx + dy * dy < radius * radius) {
+      die();
+      return;
+    }
+  }
+
+  if (
+    antiCheatRoofTrigger &&
+    !antiCheatRoofActive &&
+    player.y < antiCheatRoofTrigger.yMax &&
+    !onGround
+  ) {
+    antiCheatRoofActive = true;
+    antiCheatRoofTimer = 180;
+    antiCheatMessageTimer = 90;
+    antiCheatFlickerTimer = 28;
+    statusText.textContent = "No cheating";
+  }
+
+  if (
+    antiCheatTrigger &&
+    player.x + player.width > antiCheatTrigger.xMin &&
+    player.y < antiCheatTrigger.yMax &&
+    !onGround
+  ) {
+    antiCheatMessageTimer = 90;
+    antiCheatFlickerTimer = 28;
+    statusText.textContent = "No cheating";
+    addScreenShake(6);
     die();
     return;
   }
-}
 
-      if (
-        antiCheatRoofTrigger &&
-        !antiCheatRoofActive &&
-        player.y < antiCheatRoofTrigger.yMax &&
-        !onGround
-      ) {
-        antiCheatRoofActive = true;
-        antiCheatRoofTimer = 180;
-        antiCheatMessageTimer = 90;
-        antiCheatFlickerTimer = 28;
-        statusText.textContent = "No cheating";
-      }
+  if (onGround) {
+    if (!wasOnGround && fallSpeedBeforeCollision > 2.5) {
+      spawnLandingDust(player.x + player.width / 2, player.y + player.height);
+    }
+    isDashing = false;
+    dashTimer = 0;
+    coyoteTimer = COYOTE_FRAMES;
+  }
 
-      if (
-  antiCheatTrigger &&
-  player.x + player.width > antiCheatTrigger.xMin &&
-  player.y < antiCheatTrigger.yMax &&
-  !onGround
-) {
-  statusText.textContent = "No cheating";
-  addScreenShake(6);
-  die();
-  return;
-}
-       
-        antiCheatMessageTimer = 90;
-        antiCheatFlickerTimer = 28;
-        statusText.textContent = "No cheating";
-      }
+  if (jumpBufferTimer > 0) {
+    if (onGround || wallSliding || coyoteTimer > 0) {
+      tryJump();
+    }
+  }
 
-      if (onGround) {
-        if (!wasOnGround && fallSpeedBeforeCollision > 2.5) {
-          spawnLandingDust(player.x + player.width / 2, player.y + player.height);
-        }
-        isDashing = false;
-        dashTimer = 0;
-        coyoteTimer = COYOTE_FRAMES;
-      }
+  if (player.x < 0) {
+    player.x = 0;
+    player.vx = 0;
+  }
+  if (player.x + player.width > canvas.width) {
+    player.x = canvas.width - player.width;
+    player.vx = 0;
+  }
 
-      if (jumpBufferTimer > 0) {
-        if (onGround || wallSliding || coyoteTimer > 0) {
-          tryJump();
-        }
-      }
+  for (const orb of dashOrbs) {
+    if (orb.collected) continue;
 
-      if (player.x < 0) {
-        player.x = 0;
-        player.vx = 0;
-      }
-      if (player.x + player.width > canvas.width) {
-        player.x = canvas.width - player.width;
-        player.vx = 0;
-      }
+    const pickupPadding = 6;
+    const closestX = Math.max(player.x - pickupPadding, Math.min(orb.x, player.x + player.width + pickupPadding));
+    const closestY = Math.max(player.y - pickupPadding, Math.min(orb.y, player.y + player.height + pickupPadding));
+    const dx = orb.x - closestX;
+    const dy = orb.y - closestY;
 
-      for (const orb of dashOrbs) {
-  if (orb.collected) continue;
+    if (dx * dx + dy * dy <= orb.radius * orb.radius) {
+      orb.collected = true;
+      dashCharges = 1;
+      dashText.textContent = dashCharges;
+      statusText.textContent = "Dash charged!";
+      spawnOrbPickupParticles(orb.x, orb.y);
+      playOrbPickupSound();
+      addScreenShake(2);
+    }
+  }
 
-  const pickupPadding = 6;
-  const closestX = Math.max(player.x - pickupPadding, Math.min(orb.x, player.x + player.width + pickupPadding));
-  const closestY = Math.max(player.y - pickupPadding, Math.min(orb.y, player.y + player.height + pickupPadding));
-  const dx = orb.x - closestX;
-  const dy = orb.y - closestY;
+  const probe = 2;
+  for (const platform of activePlatforms) {
+    const probeY = player.y + 4;
+    const probeH = Math.max(8, player.height - 10);
 
-  if (dx * dx + dy * dy <= orb.radius * orb.radius) {
-    orb.collected = true;
-    dashCharges = 1;
-    dashText.textContent = dashCharges;
-    statusText.textContent = "Dash charged!";
-    spawnOrbPickupParticles(orb.x, orb.y);
-    playOrbPickupSound();
-    addScreenShake(2);
+    if (
+      rectOverlap(
+        player.x - probe,
+        probeY,
+        probe,
+        probeH,
+        platform.x,
+        platform.y,
+        platform.width,
+        platform.height
+      )
+    ) {
+      touchingWallLeft = true;
+    }
+
+    if (
+      rectOverlap(
+        player.x + player.width,
+        probeY,
+        probe,
+        probeH,
+        platform.x,
+        platform.y,
+        platform.width,
+        platform.height
+      )
+    ) {
+      touchingWallRight = true;
+    }
+  }
+
+  if (player.x <= 0) touchingWallLeft = true;
+  if (player.x + player.width >= canvas.width) touchingWallRight = true;
+
+  const pressingIntoLeftWall = touchingWallLeft && (keys.left || mobileMoveX < -0.2);
+  const pressingIntoRightWall = touchingWallRight && (keys.right || mobileMoveX > 0.2);
+
+  if (
+    !onGround &&
+    player.vy > 0 &&
+    (pressingIntoLeftWall || pressingIntoRightWall)
+  ) {
+    wallSliding = true;
+    if (player.vy > 2) player.vy = 2;
+
+    if (Math.random() < 0.55) {
+      spawnWallSlideParticle();
+    }
+
+    statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Wall sliding";
+  } else if (!onGround) {
+    wallSliding = false;
+    statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Jumping";
+  } else {
+    wallSliding = false;
+    statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Ready";
+  }
+
+  if (!keys.left && !keys.right && Math.abs(mobileMoveX) < 0.05 && onGround) {
+    player.vx *= moveFriction;
+    if (Math.abs(player.vx) < 0.05) player.vx = 0;
+  }
+
+  for (const spike of spikes) {
+    if (rectOverlap(
+      player.x + 4, player.y + 4, player.width - 8, player.height - 6,
+      spike.x, spike.y, spike.width, spike.height
+    )) {
+      die();
+      return;
+    }
+  }
+
+  if (
+    !antiCheatRoofActive &&
+    rectOverlap(
+      player.x, player.y, player.width, player.height,
+      exitPortal.x, exitPortal.y, exitPortal.width, exitPortal.height
+    )
+  ) {
+    winLevel();
+    return;
+  }
+
+  if (player.y > canvas.height + 100) {
+    resetLevel();
   }
 }
-
-      const probe = 2;
-      for (const platform of activePlatforms) {
-        const probeY = player.y + 4;
-        const probeH = Math.max(8, player.height - 10);
-
-        if (
-          rectOverlap(
-            player.x - probe,
-            probeY,
-            probe,
-            probeH,
-            platform.x,
-            platform.y,
-            platform.width,
-            platform.height
-          )
-        ) {
-          touchingWallLeft = true;
-        }
-
-        if (
-          rectOverlap(
-            player.x + player.width,
-            probeY,
-            probe,
-            probeH,
-            platform.x,
-            platform.y,
-            platform.width,
-            platform.height
-          )
-        ) {
-          touchingWallRight = true;
-        }
-      }
-
-      if (player.x <= 0) touchingWallLeft = true;
-      if (player.x + player.width >= canvas.width) touchingWallRight = true;
-
-      const pressingIntoLeftWall = touchingWallLeft && (keys.left || mobileMoveX < -0.2);
-      const pressingIntoRightWall = touchingWallRight && (keys.right || mobileMoveX > 0.2);
-
-      if (
-        !onGround &&
-        player.vy > 0 &&
-        (pressingIntoLeftWall || pressingIntoRightWall)
-      ) {
-        wallSliding = true;
-        if (player.vy > 2) player.vy = 2;
-
-        if (Math.random() < 0.55) {
-          spawnWallSlideParticle();
-        }
-
-        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Wall sliding";
-      } else if (!onGround) {
-        wallSliding = false;
-        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Jumping";
-      } else {
-        wallSliding = false;
-        statusText.textContent = antiCheatMessageTimer > 0 ? "No cheating" : "Ready";
-      }
-
-      if (!keys.left && !keys.right && Math.abs(mobileMoveX) < 0.05 && onGround) {
-        player.vx *= moveFriction;
-        if (Math.abs(player.vx) < 0.05) player.vx = 0;
-      }
-
-      for (const spike of spikes) {
-        if (rectOverlap(
-          player.x + 4, player.y + 4, player.width - 8, player.height - 6,
-          spike.x, spike.y, spike.width, spike.height
-        )) {
-          die();
-          return;
-        }
-      }
-
-      if (
-        !antiCheatPlatformActive &&
-        !antiCheatRoofActive &&
-        rectOverlap(
-          player.x, player.y, player.width, player.height,
-          exitPortal.x, exitPortal.y, exitPortal.width, exitPortal.height
-        )
-      ) {
-        winLevel();
-        return;
-      }
-
-      if (player.y > canvas.height + 100) {
-        resetLevel();
-      }
-    }
 
     function drawBackground() {
   if (currentTheme === "magenta") {
